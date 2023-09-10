@@ -22,7 +22,7 @@ app.get("/api",(req,res)=>{
 
  app.get('/things/:name/:id', function(req, res) {
     res.send('id: ' + req.params.id + ' and name: ' + req.params.name);
-    // http://localhost:5000/things/nadjib/48
+    //http://localhost:5000/things/nadjib/45
  });
  
  //Other routes here
