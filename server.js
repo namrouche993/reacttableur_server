@@ -1,10 +1,38 @@
 const express = require('express')
 const app = express()
+app.use(express.json());
 
 var things = require('./things.js');
+const { sup , how }= require('./middle.js');
+const users = require('./users'); // Import the users array from users.js
+const authenticate  = require('./authenticate.js');
+
+
+app.use(sup);
 app.use('/things', things);
+app.use(authenticate)
+
+
+app.post('/register', (req, res) => {
+   const { username, password } = req.body; 
+   // Add the new user to your database or users array (in this case, we're simulating it)
+   users.push({ username, password }); 
+   //res.status(201).send('User registered successfully');
+ });
+
+
+ app.get('/profile', authenticate, (req, res) => {
+   if (!req.user) {
+     return res.status(401).send('Authentication failed. Please provide valid credentials.');
+   }
+   
+   res.send(`Welcome, ${req.user.username}! This is your profile.`);
+ });
+  
+ 
 
 app.get('/', function(req, res){
+    console.log('im in app get / ');
     res.send("Hello world!");
  });
 
