@@ -12,31 +12,23 @@ const authenticate  = require('./authenticate.js');
 app.use(cors());
 app.use(sup);
 app.use('/things', things);
-app.use(authenticate)
+//app.use(authenticate)
 
 
 app.post('/register',authenticate, (req, res) => {
    console.log('we are in register')
    //const { username, password } = req.body;
-
-   // Add the new user to your database or users array (in this case, we're simulating it)
-   
-   //users.push({ organisme, region , email , phoneNumber }); 
-   //users={username,password};
-   //console.log('users :')
-   //console.log(users)
    
    res.status(201).send('User registered successfully');
  });
 
 
- app.get('/profile', (req, res) => {
-   if (!req.user.organisme || !req.user.region || !req.user.organisme || !req.user.organisme) {
-     return res.status(401).send('Authentication failed. Please provide valid credentials.');
-   }
-   
+ app.get('/profile',authenticate, (req, res) => {
    res.send(`Welcome, ${req.user.email}! This is your profile.`);
  });
+
+ 
+
   
 
  
@@ -65,7 +57,7 @@ app.get('/:id', function(req, res){
   res.send('The id you specified is ' + req.params.id + ' and you profile : ' + req.user.organisme);
 });
 
-app.get('*', function(req, res){   // 404 page 
+app.get('*', function(req, res){   //   404 page 
   res.send('Sorry, this is an invalid URL.');
 });
 

@@ -21,9 +21,15 @@ const isValidPhoneNumber = (value) => {
 function authenticate(req, res, next) {
   console.log('we are in authenticate')
     const { organisme, region,email,phoneNumber } = req.body;
-    // Check if the username and password match any user in the database
+    console.log('organisme :')
+    console.log(organisme)
+    console.log(region)
+    console.log(email)
+    console.log(phoneNumber)
+
+    // Check if the username and   password  match any user in the database
     const organisme_to_check = organisme_data.find(u => u.val === organisme);
-    const region_to_check = region_data.find(u => u.region === region);
+    const region_to_check = region_data.find(u => u.matriculeregion === region);
     const email_check = isValidEmail(email);
     const phoneNumber_check = isValidPhoneNumber(phoneNumber);
 
