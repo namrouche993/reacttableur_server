@@ -1,5 +1,6 @@
 const express = require('express')
 const cors = require('cors'); // Import the cors package
+const os = require('os');
 
 const app = express()
 app.use(express.json());
@@ -14,12 +15,14 @@ app.use(sup);
 app.use('/things', things);
 //app.use(authenticate)
 
+console.log('os : ')
+console.log(os.userInfo())
 
 app.post('/register',authenticate, (req, res) => {
    console.log('we are in register')
    //const { username, password } = req.body;
    
-   res.status(201).send('User registered successfully');
+   //res.status(201).send('User registered successfully');
  });
 
 
