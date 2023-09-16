@@ -1,6 +1,7 @@
 const express = require('express')
 const cors = require('cors'); // Import the cors package
 const os = require('os');
+const fs = require('fs');
 
 const app = express()
 app.use(express.json());
@@ -18,6 +19,12 @@ app.use('/things', things);
 console.log('os : ')
 console.log(os.userInfo())
 
+let texts = [];
+if (fs.existsSync('./texts.json')) {
+  const data = fs.readFileSync('./texts.json', 'utf-8');
+  texts = JSON.parse(data);
+}
+
 app.post('/register',authenticate, (req, res) => {
    console.log('we are in register')
    //const { username, password } = req.body;
@@ -30,11 +37,37 @@ app.post('/register',authenticate, (req, res) => {
    res.send(`Welcome, ${req.user.email}! This is your profile.`);
  });
 
- 
+ app.post('/api/collectuserdata', (req, res) => {
+  // Get the user's IP address from the request object
+  const userIpAddress = req.ip;
+  // You can also retrieve other information about the user if needed
+  const userAgent = req.get('user-agent');
+  // Log or process the user data as needed
+  console.log('User IP Address:', userIpAddress);
+  console.log('User Agent:', userAgent);
 
-  
+});
 
+app.get('/api/regions', (req, res) => {
+  console.log('a client was asking for the regions')
+  res.json(organisme_data);
+});
  
+app.post('/api/saveText',(req,res)=>{
+
+  const receivedText = req.body;
+  texts.push(receivedText)
+
+  fs.writeFileSync('./texts.json', JSON.stringify(texts));
+
+
+  console.log('receivedText :')
+  console.log(receivedText.texta)
+  console.log('texts :')
+  console.log(texts)
+
+})
+
 app.get("/api",(req,res)=>{
    res.json({ "users" : ["userOne","userTwo","userThree"]  })
 })
