@@ -2,6 +2,8 @@ const express = require('express')
 const cors = require('cors'); // Import the cors package
 const os = require('os');
 const fs = require('fs');
+var bodyParser = require('body-parser')
+const requestIp = require('request-ip');
 
 const app = express()
 app.use(express.json());
@@ -12,6 +14,9 @@ const {organisme_data,region_data} = require('./users'); // Import the users arr
 const authenticate  = require('./authenticate.js');
 
 app.use(cors());
+app.use(bodyParser.json());
+app.use(requestIp.mw());
+
 app.use(sup);
 app.use('/things', things);
 //app.use(authenticate)
@@ -54,19 +59,35 @@ app.get('/api/regions', (req, res) => {
 });
  
 app.post('/api/saveText',(req,res)=>{
-
   const receivedText = req.body;
   texts.push(receivedText)
 
   fs.writeFileSync('./texts.json', JSON.stringify(texts));
 
-
   console.log('receivedText :')
   console.log(receivedText.texta)
   console.log('texts :')
   console.log(texts)
+});
 
+
+let savedData=null;
+app.post('/api/saveData',(req,res)=>{
+  const receivedData = req.body;
+  // Handle storing the data (e.g., save to a database)
+  savedData = receivedData;
+  console.log('Received data from client and saved:', receivedData);
+  console.log('yes ' + new Date())
+  res.json({ message: 'Data received and saved successfully.' });
 })
+
+app.get('/api/getData', (req, res) => {
+  console.log('fetching data from server app.get api getdata')
+  console.log('ip address of the userrrr :')
+  const userIp = req.clientIp; // Use req.clientIp instead
+  console.log(userIp)
+  res.json(savedData);
+});
 
 
 app.get("/api",(req,res)=>{
