@@ -3,6 +3,9 @@ const cors = require('cors'); // Import the cors package
 const os = require('os');
 const fs = require('fs');
 const mongoose = require('mongoose');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+const secretKey = '425cac990d726cd10669e2957c6f2ebef6e2b1f4f61dffc011c7327e73031620'; // Replace with your actual secret key
 
 
 var bodyParser = require('body-parser')
@@ -11,8 +14,9 @@ const requestIp = require('request-ip');
 const app = express()
 app.use(express.json());
 
-var things = require('./things.js');
+//var things = require('./things.js');
 //const { sup , how }= require('./middle.js');
+
 const {organisme_data,region_data} = require('./users'); // Import the users array from users.js
 const authenticate  = require('./authenticate.js');
 
@@ -20,15 +24,9 @@ app.use(cors());
 app.use(bodyParser.json());
 
 //app.use(requestIp.mw());
-
 //app.use(sup);
-app.use('/things', things);
+//app.use('/things', things);
 
-
-//app.use(authenticat e)
-
-console.log('os : ')
-console.log(os.userInfo())
 
 mongoose.connect('mongodb://localhost/mydatabasetableur', {
   useNewUrlParser: true,
@@ -38,17 +36,10 @@ mongoose.connect('mongodb://localhost/mydatabasetableur', {
 const mydb = mongoose.connection;
 mydb.on('error',(error)=> console.error('Error connecting to MongoDB:', error));
 mydb.once('open',() =>console.log('Connected to MongoDB'))
-console.log('mydb :')
-//console.log(mydb.collections)
-let collection2 = mydb.collection("spreadsheet");
-//console.log(collection2)
-//console.log(collection2.find({}))
-
 const MyModelMongoose = require('./MyModelMongooseFile.js')
 var mongooseRouter = require('./mongooseRouter.js')
 
 
-console.log('we will cal mongooserouter : ')
 app.use('/mongooseRouter', mongooseRouter);
 
 
@@ -65,45 +56,66 @@ app.post('/register',authenticate, (req, res) => {
    res.send(`Welcome, ${req.user.email}! This is your profile.`);
  });
 
- app.post('/api/collectuserdata', (req, res) => {
-  // Get the user's IP address from the request object
-  const userIpAddress = req.ip;
-  // You can also retrieve other information about the user if needed
-  const userAgent = req.get('user-agent');
-  // Log or process the user data as needed
-  console.log('User IP Address:', userIpAddress);
-  console.log('User Agent:', userAgent);
-
-});
-
-app.get('/api/regions', (req, res) => {
-  console.log('a client was asking for the regions')
-  res.json(organisme_data);
-});
  
 
+app.post('/api/login', (req, res) => {
+  console.log('we will call api/login nnnnnnnnnnnnnnnnnnnnnnn')
+  const { idusername,dataa } = req.body;
+  const mymodfind = MyModelMongoose.find({});
+  console.log('mymodfind : ')
+  //console.log(mymodfi nd)
+  const newRecord = new MyModelMongoose({
+    "idusername":idusername,
+    "dataa":dataa
+  });
+  newRecord.save();
+  
+  // Create a JWT token with the user's username
+  const token = jwt.sign({ idusername }, secretKey);
+  console.log(token)
 
-let savedData=null;
-app.post('/api/saveData',(req,res)=>{
-  const receivedData = req.body;
-  // Handle storing the data (e.g., save to a database)
-  savedData = receivedData;
-  console.log('Received data from client and saved:', receivedData);
-  console.log('yes ' + new Date())
-  res.json({ message: 'Data received and saved successfully.' });
-})
-
-app.get('/api/getData', (req, res) => {
-  console.log('fetching data from server app.get api getdata')
-  console.log('ip address of the userrrr :')
-  const userIp = req.clientIp; // Use req.clientIp instead
-  console.log(userIp)
-  res.json(savedData);
+  res.json({ token });
 });
 
 
-app.get("/api",(req,res)=>{
-   res.json({ "users" : ["userOne","userTwo","userThree"]  })
+const authorizeUser = (req, res, next) => {
+  console.log('authorizeUser');
+  const token = req.header('Authorization');
+  console.log(token);
+  const idusername = req.params.idusername;
+  console.log(idusername)
+
+  if (!token) {
+    return res.status(401).json({ message: 'Access denied' });
+  }
+
+  try {
+    const decoded = jwt.verify(token, secretKey);
+    console.log('decoded :')
+    console.log(decoded)
+    if (decoded.idusername !== idusername) {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
+    next();
+  } catch (error) {
+    res.status(400).json({ message: 'Invalid token' });
+  }
+};
+
+
+app.get("/api/:idusername", authorizeUser , async (req,res)=>{
+  try {
+    console.log('we are in api:username')
+    const idusername = req.params.idusername;
+    console.log(idusername); 
+    const datamymodelget = await MyModelMongoose.find({idusername: req.params.idusername});
+    res.json(datamymodelget);
+    console.log(datamymodelget)
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+
+   //res.json({ "users" : ["userOne","userTwo","userThree"]  })
 })
 
 app.post('/hello', function(req, res){
