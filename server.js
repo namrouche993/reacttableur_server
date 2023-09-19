@@ -2,6 +2,9 @@ const express = require('express')
 const cors = require('cors'); // Import the cors package
 const os = require('os');
 const fs = require('fs');
+const mongoose = require('mongoose');
+
+
 var bodyParser = require('body-parser')
 const requestIp = require('request-ip');
 
@@ -9,26 +12,46 @@ const app = express()
 app.use(express.json());
 
 var things = require('./things.js');
-const { sup , how }= require('./middle.js');
+//const { sup , how }= require('./middle.js');
 const {organisme_data,region_data} = require('./users'); // Import the users array from users.js
 const authenticate  = require('./authenticate.js');
 
 app.use(cors());
 app.use(bodyParser.json());
-app.use(requestIp.mw());
 
-app.use(sup);
+//app.use(requestIp.mw());
+
+//app.use(sup);
 app.use('/things', things);
-//app.use(authenticate)
+
+
+//app.use(authenticat e)
 
 console.log('os : ')
 console.log(os.userInfo())
 
-let texts = [];
-if (fs.existsSync('./texts.json')) {
-  const data = fs.readFileSync('./texts.json', 'utf-8');
-  texts = JSON.parse(data);
-}
+mongoose.connect('mongodb://localhost/mydatabasetableur', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+});
+
+const mydb = mongoose.connection;
+mydb.on('error',(error)=> console.error('Error connecting to MongoDB:', error));
+mydb.once('open',() =>console.log('Connected to MongoDB'))
+console.log('mydb :')
+//console.log(mydb.collections)
+let collection2 = mydb.collection("spreadsheet");
+//console.log(collection2)
+//console.log(collection2.find({}))
+
+const MyModelMongoose = require('./MyModelMongooseFile.js')
+var mongooseRouter = require('./mongooseRouter.js')
+
+
+console.log('we will cal mongooserouter : ')
+app.use('/mongooseRouter', mongooseRouter);
+
+
 
 app.post('/register',authenticate, (req, res) => {
    console.log('we are in register')
@@ -58,17 +81,6 @@ app.get('/api/regions', (req, res) => {
   res.json(organisme_data);
 });
  
-app.post('/api/saveText',(req,res)=>{
-  const receivedText = req.body;
-  texts.push(receivedText)
-
-  fs.writeFileSync('./texts.json', JSON.stringify(texts));
-
-  console.log('receivedText :')
-  console.log(receivedText.texta)
-  console.log('texts :')
-  console.log(texts)
-});
 
 
 let savedData=null;
@@ -111,9 +123,6 @@ app.get('/', function(req, res){
   //res.send("Hello world!");
 });
 
-app.get('/:id', function(req, res){
-  res.send('The id you specified is ' + req.params.id + ' and you profile : ' + req.user.organisme);
-});
 
 app.get('*', function(req, res){   //   404 page 
   res.send('Sorry, this is an invalid URL.');
