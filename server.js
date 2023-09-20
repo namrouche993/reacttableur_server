@@ -4,6 +4,8 @@ const os = require('os');
 const fs = require('fs');
 const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser');
+
 const bcrypt = require('bcryptjs');
 const secretKey = '425cac990d726cd10669e2957c6f2ebef6e2b1f4f61dffc011c7327e73031620'; // Replace with your actual secret key
 
@@ -12,7 +14,11 @@ var bodyParser = require('body-parser')
 const requestIp = require('request-ip');
 
 const app = express()
+
 app.use(express.json());
+app.use(cors({credentials: true}));
+app.use(bodyParser.json());
+app.use(cookieParser());
 
 //var things = require('./things.js');
 //const { sup , how }= require('./middle.js');
@@ -20,8 +26,6 @@ app.use(express.json());
 const {organisme_data,region_data} = require('./users'); // Import the users array from users.js
 const authenticate  = require('./authenticate.js');
 
-app.use(cors());
-app.use(bodyParser.json());
 
 //app.use(requestIp.mw());
 //app.use(sup);
@@ -63,7 +67,7 @@ app.post('/api/login', (req, res) => {
   const { idusername,dataa } = req.body;
   const mymodfind = MyModelMongoose.find({});
   console.log('mymodfind : ')
-  //console.log(mymodfi nd)
+  //console.log(mymodfi  nd)
   const newRecord = new MyModelMongoose({
     "idusername":idusername,
     "dataa":dataa
@@ -73,7 +77,8 @@ app.post('/api/login', (req, res) => {
   // Create a JWT token with the user's username
   const token = jwt.sign({ idusername }, secretKey);
   console.log(token)
-
+  res.cookie('jwtToken', token, { httpOnly: true,  maxAge: 8640000000 });
+  res.cookie('cookie_name', 'cookie_value');  
   res.json({ token });
 });
 
@@ -82,22 +87,31 @@ const authorizeUser = (req, res, next) => {
   console.log('authorizeUser');
   const token = req.header('Authorization');
   console.log(token);
+  const jwtTokenget = req.cookies.jwtToken;
+  console.log(req.cookies);  
+  console.log(jwtTokenget);
+
   const idusername = req.params.idusername;
   console.log(idusername)
 
   if (!token) {
+    console.log('we are inside !token')
     return res.status(401).json({ message: 'Access denied' });
   }
 
   try {
-    const decoded = jwt.verify(token, secretKey);
+    console.log('we are inside try')
+    console.log(token.split([' '])[1])
+    const decoded = jwt.verify(token.split([' '])[1], secretKey);
     console.log('decoded :')
     console.log(decoded)
     if (decoded.idusername !== idusername) {
+      console.log('we are inside decoded.idusername !== idusername')
       return res.status(403).json({ message: 'Forbidden' });
     }
     next();
   } catch (error) {
+    console.log('we are inside catch error ')
     res.status(400).json({ message: 'Invalid token' });
   }
 };
@@ -110,7 +124,7 @@ app.get("/api/:idusername", authorizeUser , async (req,res)=>{
     console.log(idusername); 
     const datamymodelget = await MyModelMongoose.find({idusername: req.params.idusername});
     res.json(datamymodelget);
-    console.log(datamymodelget)
+    //console.log(datamymodelget)
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
