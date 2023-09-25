@@ -49,7 +49,7 @@ function ddatafct(last_row_after_header){
     if( retreived_data.every(row => row[0] == '' || row[0] == null )
      && retreived_data.every(row => row[ Number(retreived_data[0].length)-1 ] == '' || row[ Number(retreived_data[0].length)-1 ] == null )
     ) {
-        console.log('0 col and last col are equal to "" or null ')
+        //console.log('0 col and last col are equal to "" or null ')
     } else {
         console.log('0 and last col are not all equal to "" or NULLL !!!')
         return false;
@@ -58,16 +58,23 @@ function ddatafct(last_row_after_header){
 
     let AreReallyEmpty = true;
     const ddata_empty_index = findIndicesOfTargetValue(ddata,'empty');
-    ddata_empty_index.map((x,index)=>{
-      if( retreived_data[Number(x.rowIndex)][Number(x.colIndex)]!=='' || retreived_data[Number(x.rowIndex)][Number(x.colIndex)]!=='' ) {
-        const AreReallyEmpty = false;
-        return;
-      }  
-    })
-    if(!AreReallyEmpty){
-        return false
+    for (let index = 0; index < ddata_empty_index.length; index++) {
+      if( 
+        retreived_data[Number(ddata_empty_index[index].rowIndex)][Number(ddata_empty_index[index].colIndex)]=='' ||
+        retreived_data[Number(ddata_empty_index[index].rowIndex)][Number(ddata_empty_index[index].colIndex)]==null 
+      ) {
+      } else {
+        AreReallyEmpty=false;
+        break;
+      }
+      //const element = ddata_empty_index[index];
     }
+    if(!AreReallyEmpty){
+      return false
+  }
+
     console.log('we depasse empty equal to "" ')
+
 
   /*  
 for(let i=0 ; i<=last_row_after_header ; i++) {
@@ -83,4 +90,4 @@ return ddata
 
 var data_to_verify =  ddatafct(last_row_after_header);
 console.log(data_to_verify);
-module.exports = {data_to_verify}
+module.exports = {data_to_verify};
