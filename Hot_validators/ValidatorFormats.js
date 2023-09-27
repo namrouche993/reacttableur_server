@@ -159,9 +159,9 @@ const valid_text = (value,text_length_txt) => {
     if( value==null || 
         value.toString().length<text_length_txt    
     ) {
-      callback(true)
+      return true;
     } else {
-      callback(false)
+      return false;
     }
 }
 
