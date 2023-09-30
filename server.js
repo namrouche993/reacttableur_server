@@ -46,7 +46,26 @@ var mongooseRouter = require('./mongooseRouter.js')
 
 
 app.use('/mongooseRouter', mongooseRouter);
+const last_row_after_header = 15; // editable 
+const ddatafct_verify = require('./Hot_validators/data_to_verify.js')
 
+
+const updateByUsername = async (username, newData) => {
+  try {
+    const updatedUser = await MyModelMongoose.findOneAndUpdate(
+      { idusername: username },
+      { $set: {dataa: newData}},
+    );
+
+    if (updatedUser) {
+      //console.log('User updated:', updatedUser); 
+    } else {
+      console.log('User not found.');
+    }
+  } catch (error) {
+    console.error('Error updating user:', error);
+  }
+};
 
 
 app.post('/register',authenticate, (req, res) => {
@@ -56,40 +75,54 @@ app.post('/register',authenticate, (req, res) => {
    //res.status(201).send('User registered successfully');
  });
 
-
  app.post('/beacondata',express.json(), express.text(), (req, res) => {
   // Handle the received data
-  const receivedData = JSON.parse(req.body);
-  console.log(receivedData)
-  console.log(receivedData[7][1])
+  console.log('req.body :')
 
-  // Process the received data as needed !
-  //console.log('Received data:', receivedData);
+  const receivedData = JSON.parse(req.body.jsonData_whenclosed); //JSON.parse(req.body) ;
+  const receivedUsername = req.body.idusername;
+
+  console.log('httponly cookie :')
+  const myCookie_token = req.cookies['jwtToken'];  // Replace 'myCookieName' with your actual cookie name
+  
+  const decoded = jwt.verify(myCookie_token, secretKey);
+  console.log('decoded :');
+  console.log(decoded);
+
+  if (decoded.idusername !== receivedUsername) {
+    console.log('we are inside decoded.idusername !== idusername')
+    return res.status(403).json({ message: 'Forbidden' });
+  }
+
+
+  // console.log('ddatafct_verify : ')
+  // console.log(ddatafct_verify(last_row_after_header,receivedData));
+
+  if(!ddatafct_verify(last_row_after_header,receivedData)){
+    console.log('we return false')
+    //res.status(500).json({ message: error.message });
+    return res.status(400).json({
+      error:'Error',
+      message: 'Error'
+    }); 
+  }
+
+  updateByUsername(decoded.idusername, receivedData);
+
 
   // Respond with a success message
   res.status(200).send('Data received successfully.');
 });
 
- app.get('/profile',authenticate, (req, res) => {
-   res.send(`Welcome, ${req.user.email}! This is your profile.`);
- });
 
 
-app.post('/save-data',(req,res)=>{
+app.post('/api/saveData',(req,res)=>{
   const { datar_received } = req.body ;
   console.log('data received succesfully ! ')
   console.log(datar_received)
   res.status(201).send('Data received successfully');
 });
 
-app.get('/api/firstlogin',(req,res)=>{
-  console.log('we are inside /api/firstlog ')
-  const idusername_first = generateRandomString(14);
-  console.log(idusername_first);
-  const token_first = jwt.sign({ idusername_first }, secretKey);
-  res.cookie('jwtToken_first', token_first, { httpOnly: true,  maxAge: 8640000000 });
-  res.json({ idusername_first });
-})
 
 app.post('/api/login', (req, res) => {
   console.log('we will call api/login nnnnnnnnnnnnnnnnnnnnnnn')
@@ -105,61 +138,15 @@ app.post('/api/login', (req, res) => {
   
   // Create a JWT token with the user's username
   const token = jwt.sign({ idusername }, secretKey);
-  console.log(token)
+  console.log(token);
   res.cookie('jwtToken', token, { httpOnly: true,  maxAge: 8640000000 });
   //res.cookie('cookie_name', 'cookie_value');  
-  res.json({ token });
+  //res.json({ token });
 });
 
 
-const authorizeUser = (req, res, next) => {
-  console.log('authorizeUser');
-  //const token = req.header('Authorization');
-  //console.log(token);
-  
-  const token = req.cookies.jwtToken;
-  console.log(token);
 
-  const idusername = req.params.idusername;
-  console.log(idusername)
-
-  if (!token) {
-    console.log('we are inside !token')
-    return res.status(401).json({ message: 'Access denied' });
-  }
-
-  try {
-    console.log('we are inside try')
-    console.log(token)
-    const decoded = jwt.verify(token, secretKey);
-    console.log('decoded :')
-    console.log(decoded)
-    if (decoded.idusername !== idusername) {
-      console.log('we are inside decoded.idusername !== idusername')
-      return res.status(403).json({ message: 'Forbidden' });
-    }
-    next();
-  } catch (error) {
-    console.log('we are inside catch error ')
-    res.status(400).json({ message: 'Invalid token' });
-  }
-};
-
-
-app.get("/api2/:idusername", authorizeUser , async (req,res)=>{
-  try {
-    console.log('we are in api:username')
-    const idusername = req.params.idusername;
-    console.log(idusername); 
-    const datamymodelget = await MyModelMongoose.find({idusername: req.params.idusername});
-    res.json(datamymodelget);
-    //console.log(datamymodelget)
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-
-   //res.json({ "users" : ["userOne","userTwo","userThree"]  })
-})
+// authorizeUser is in separated file
 
 app.post('/hello', function(req, res){
    res.send("You just called the post method at '/hello'!\n");
@@ -191,3 +178,5 @@ app.get('*', function(req, res){   //   404 page
 app.listen(5000,()=>{
     console.log('server listend to the port 5000')
 })
+
+

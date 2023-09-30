@@ -8,17 +8,20 @@ const valid_amounts = (oldvalue,currencyht_nbnb) => {
       } else {
         var value = null;
       }  
-      if (value == null ||
+      if (value == '' || value == null ||
         /^\s*[-+]?(\s*\d+)\s*$/.test(value) || // /^\s*[-+]?(\d+)\s*$/.test(value) || // when the value is whole number like 45 1987 2 36 ... // /^\s*[-+]?(\d+)\s*\$?\s*$/.test("  1235$  ")
         /^\s*[-+]?(\s*\d+(\.\d*)?|\.\d+)\s*$/.test(value) || //1234567.89 (BY DEFAULT VALUE) AMERICAN NUMERIC FORMAT WITHOUT THOUSAND SEPARATOR
-        /^\s*[-+]?(\s*\d+(,\d*)?|,\d+)\s*$/.test(value) || //1234567,89 EUROPEAN NUMERIC FORMAT WITHOUT THOUSAND SEPARATOR
-        /^\s*[-+]?(\s*\d{1,3}( \d{3})*(,\d*)?|,\d+)\s*$/.test(value.toString().replace(/[\s\u00A0]/g, ' ') ) || // 1 234 567,89 FRENCH NUMERIC FORMAT WITH THOUSAND SEPARATOR as space
-        /^\s*[-+]?(\s*\d{1,3}(,\d{3})*(\.\d+)?|\.\d+)\s*$/.test(value) || // 1,234,567.89 AMERICAN NUMERIC FORMAT WITH THOUSAND SEPARATOR as comma
-        /^\s*[-+]?(\s*\d{1,3}(?:\.\d{3})+(?:,\d+)?)\s*(?=\s|$)/.test(value) || // 1.234.567,89 EUROPEAN NUMERIC FORMAT WITH THOUSAND SEPARATOR as dot /^\s*[-+]?(\d{1,3}(?:[.,\s]\d{3})*(?:,\d+)?)\s*$/
-        /^\s*[-+]?(\s*\d{1,3}( \d{3})*(\.\d*)?|\.\d+)\s*$/.test(value.toString().replace(/[\s\u00A0]/g, ' ')) ||   // 1 234 567.89 AMERICAN NUMERIC FORMAT WITH THOUSAND SEPARATOR as space
-        /^\s*[-+]?[\s]*[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?\s*$/.test(value) || // 1.6e6 1.60E+04  -13.65E4  - 12.3E+03  scientific notation with E sign
-        /^\s*[-+]?[\s]*[0-9]*,?[0-9]+([eE][-+]?[0-9]+)?\s*$/.test(value)    // 1,6e6 1,60E+04  -13,65E4  - 12.3E+03  scientific notation with E sign
-  
+        /^\s*[-+]?(\s*\d+(,\d*)?|,\d+)\s*$/.test(value) //1234567,89 EUROPEAN NUMERIC FORMAT WITHOUT THOUSAND SEPARATOR
+        
+        /*
+          /^\s*[-+]?(\s*\d{1,3}( \d{3})*(,\d*)?|,\d+)\s*$/.test(value.toString().replace(/[\s\u00A0]/g, ' ') ) || // 1 234 567,89 FRENCH NUMERIC FORMAT WITH THOUSAND SEPARATOR as space
+          /^\s*[-+]?(\s*\d{1,3}(,\d{3})*(\.\d+)?|\.\d+)\s*$/.test(value) || // 1,234,567.89 AMERICAN NUMERIC FORMAT WITH THOUSAND SEPARATOR as comma
+          /^\s*[-+]?(\s*\d{1,3}(?:\.\d{3})+(?:,\d+)?)\s*(?=\s|$)/.test(value) || // 1.234.567,89 EUROPEAN NUMERIC FORMAT WITH THOUSAND SEPARATOR as dot /^\s*[-+]?(\d{1,3}(?:[.,\s]\d{3})*(?:,\d+)?)\s*$/
+          /^\s*[-+]?(\s*\d{1,3}( \d{3})*(\.\d*)?|\.\d+)\s*$/.test(value.toString().replace(/[\s\u00A0]/g, ' ')) ||   // 1 234 567.89 AMERICAN NUMERIC FORMAT WITH THOUSAND SEPARATOR as space
+          /^\s*[-+]?[\s]*[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?\s*$/.test(value) || // 1.6e6 1.60E+04  -13.65E4  - 12.3E+03  scientific notation with E sign
+          /^\s*[-+]?[\s]*[0-9]*,?[0-9]+([eE][-+]?[0-9]+)?\s*$/.test(value)    // 1,6e6 1,60E+04  -13,65E4  - 12.3E+03  scientific notation with E sign
+        */
+       
       ) {
         //callback(true);
         return true
@@ -30,7 +33,7 @@ const valid_amounts = (oldvalue,currencyht_nbnb) => {
 }
 
 const valid_date = (value) => {
-    if( value==null || 
+    if(value == '' ||  value==null || 
         /^\d{1,2}\/\d{1,2}\/\d{4}$/.test(value.toString().trim().replace(/\s*\/\s*/g,"/")) ||  // "31/12 / 1995"
         /^\d{1,2}\-\d{1,2}\-\d{4}$/.test(value.toString().trim().replace(/\s*-\s*/g,"-")) ||   // "31 - 12-1995"
         /^\d{1,2}\.\d{1,2}\.\d{4}$/.test(value.toString().trim().replace(/\s*\.\s*/g,".")) ||   // "31.12. 1995"
@@ -73,7 +76,7 @@ const valid_date = (value) => {
 }
 
 const valid_dropdown = (value,my_source) => {
-    console.log('validator_dropdown')
+    //console.log('validator_dropdown')
     if(value==null){
       return true;
     } else if(my_source.includes(value)){
@@ -87,7 +90,7 @@ const valid_dropdown = (value,my_source) => {
 }
 
 const valid_email = (value) => {
-    if(value==null || /^[\w.-]+@[a-zA-Z0-9.,-]+\.[a-zA-Z]{2,}$/.test(value.toString().trim()) ) {
+    if(value == '' || value==null || /^[\w.-]+@[a-zA-Z0-9.,-]+\.[a-zA-Z]{2,}$/.test(value.toString().trim()) ) {
         //callback(true)
         return true;
     } else {
@@ -103,7 +106,7 @@ const valid_integers = (oldvalue,currencyht_intint) => {
         var value = null;
       }
 
-     if (value == null ||
+     if (value == '' || value == null ||
        /^\s*[-+]?(\s*\d+)\s*$/.test(value) || // /^\s*[-+]?(\d+)\s*$/.test(value) || // when the value is whole number like 45 1987 2 36 ... // /^\s*[-+]?(\d+)\s*\$?\s*$/.test("  1235$  ")
        /^\s*[-+]?(\s*\d+(\.\d*)?|\.\d+)\s*$/.test(value) || //1234567.89 (BY DEFAULT VALUE) AMERICAN NUMERIC FORMAT WITHOUT THOUSAND SEPARATOR
        /^\s*[-+]?(\s*\d+(,\d*)?|,\d+)\s*$/.test(value) || //1234567,89 EUROPEAN NUMERIC FORMAT WITHOUT THOUSAND SEPARATOR
@@ -124,7 +127,7 @@ const valid_integers = (oldvalue,currencyht_intint) => {
 }
 
 const valid_onlynb = (value) => {
-    if(value==null || /^\d+(\s*\d+)*$/.test(value.toString().trim()) ) {
+    if(value == '' || value==null || /^\d+(\s*\d+)*$/.test(value.toString().trim()) ) {
         return true;
     } else {
         return false;
@@ -132,7 +135,7 @@ const valid_onlynb = (value) => {
 }
 
 const valid_percentage = (value) => {
-    if (value == null || // value == '' ||
+    if (value == '' || value == null || // value == '' ||
     /^[-+]?(\s*\d+(\.\d+)?)\s*%$/.test(value.toString().trim()) || // for example 14.65%  "14.65 %"  
     /^[-+]?(\s*\d+(,\d+)?)\s*%$/.test(value.toString().trim()) || // for example 14,65%   "14,65 %"
     
@@ -148,7 +151,7 @@ const valid_percentage = (value) => {
 }
 
 const valid_phonenumber = (value) => {
-    if(value==null || /^\+?[\d\/\s()+\-_:]+$/.test(value.toString().trim()) ) {  // when it may start with "+" or it includes / \ - ( ) _ : 
+    if(value == '' || value==null || /^\+?[\d\/\s()+\-_:]+$/.test(value.toString().trim()) ) {  // when it may start with "+" or it includes / \ - ( ) _ : 
         return true;
     } else {
       return false;

@@ -17,16 +17,9 @@
 
   //const retreived_data = req.body.data;
 
-function findIndicesOfTargetValue(array,targetValue) {
-    const indices = array.flatMap((row, rowIndex) =>
-      row.map((cell, colIndex) => ({ rowIndex, colIndex, value: cell }))
-    ).filter(cell => cell.value === targetValue);
-  
-    return indices;
-  }
 
 const last_row_after_header = 15 // editable must be equal to the one in initials_inputs_nb ;
-function ddatafct_verify(last_row_after_header){
+function ddatafct_verify(last_row_after_header,retreived_data){
     var ddata_header= [];
     ddata_header.push(  
       ['empty',"sta_rt_0_abc_with_République Algérienne Démocratique et Populaire",'empty','empty','empty','empty','empty','empty','empty','empty','empty','empty','empty','empty','empty',   'empty'],
@@ -75,9 +68,12 @@ function ddatafct_verify(last_row_after_header){
         AreReallySomething=false;
           break;
         }
-       else if (i>Number(ddata_header.length-1) ){
+    
+    
+    
+        else if (i>Number(ddata_header.length-1) ){
           if(j==1 || j==9) { //editable index 
-            console.log('i is : ' + i + ' j is : ' + j  ); var validformat = ValidatorFormats.valid_text(retreived_data[i][j],600);
+            var validformat = ValidatorFormats.valid_text(retreived_data[i][j],600);
             if (!validformat){
               AreReallySomething=false;
               break;
@@ -85,56 +81,56 @@ function ddatafct_verify(last_row_after_header){
           }
           else if (j==2){ // editable index
             var mysource_dropdown = ['','yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white'] // editable
-            console.log('i is : ' + i + ' j is : ' + j  ); var validformat = ValidatorFormats.valid_dropdown(retreived_data[i][j],mysource_dropdown);
+            var validformat = ValidatorFormats.valid_dropdown(retreived_data[i][j],mysource_dropdown);
             if (!validformat){
               AreReallySomething=false;
               break;  
             }
           }
           else if (j==3){ // editable index
-            console.log('i is : ' + i + ' j is : ' + j  ); var validformat = ValidatorFormats.valid_email(retreived_data[i][j]);
+            var validformat = ValidatorFormats.valid_email(retreived_data[i][j]);
             if (!validformat){
               AreReallySomething=false;
               break;  
             }
           }
           else if (j==4){ // editable index
-            console.log('i is : ' + i + ' j is : ' + j  ); var validformat = ValidatorFormats.valid_onlynb(retreived_data[i][j]);
+            var validformat = ValidatorFormats.valid_onlynb(retreived_data[i][j]);
             if (!validformat){
               AreReallySomething=false;
               break;  
             }
           }
           else if (j==5){ // editable index
-            console.log('i is : ' + i + ' j is : ' + j  ); var validformat = ValidatorFormats.valid_phonenumber(retreived_data[i][j]);
+            var validformat = ValidatorFormats.valid_phonenumber(retreived_data[i][j]);
             if (!validformat){
               AreReallySomething=false;
               break;  
             }
           }
           else if (j==6){ // editable index
-            console.log('i is : ' + i + ' j is : ' + j  ); var validformat = ValidatorFormats.valid_date(retreived_data[i][j]);
+            var validformat = ValidatorFormats.valid_date(retreived_data[i][j]);
             if (!validformat){
               AreReallySomething=false;
               break;  
             }
           }
           else if (j==7){ // editable index
-            console.log('i is : ' + i + ' j is : ' + j  ); var validformat = ValidatorFormats.valid_percentage(retreived_data[i][j]);
+            var validformat = ValidatorFormats.valid_percentage(retreived_data[i][j]);
             if (!validformat){
               AreReallySomething=false;
               break;  
             }
           }
           else if (j==8){ // editable index
-            console.log('i is : ' + i + ' j is : ' + j  ); var validformat = ValidatorFormats.valid_amounts(retreived_data[i][j],'$');
+            var validformat = ValidatorFormats.valid_amounts(retreived_data[i][j],'$'); // editable currency
             if (!validformat){
               AreReallySomething=false;
               break;  
             }
           }
           else if (j==10){ // editable index
-            console.log('i is : ' + i + ' j is : ' + j  ); var validformat = ValidatorFormats.valid_integers(retreived_data[i][j],'$');
+            var validformat = ValidatorFormats.valid_integers(retreived_data[i][j],'$');  // editable currency
             if (!validformat){
               AreReallySomething=false;
               break;  
@@ -146,7 +142,7 @@ function ddatafct_verify(last_row_after_header){
        }
       //console.log('we depasse 4');       
       if(!AreReallySomething){
-        console.log('i : ' + i)
+       // console.log('i : ' + i)
         //console.log('j : ' + j)
         break;
     }
@@ -154,11 +150,12 @@ function ddatafct_verify(last_row_after_header){
     if(!AreReallySomething){
       return false
     }
-    console.log(AreReallySomething)
+    //console.log(AreReallySomething)
+    return AreReallySomething
     
   }
   //console.log('we depasse empty equal to "" ')
 
-var data_to_verify =  ddatafct_verify(last_row_after_header);
-console.log(data_to_verify);
-module.exports = {data_to_verify};
+//var data_to_verify =  ddatafct_verify(last_row_after_header);
+//console.log(data_to_verify);
+module.exports = ddatafct_verify;

@@ -1,0 +1,20 @@
+https://stackoverflow.com/questions/61146427/secure-api-data-from-calls-out-of-the-app/61188785#61188785
+
+Like medieval castles, API defenses are done in layers:
+
+
+-  Secure transport layer by using only HTTPS, and you can do it for free with LetsEncrypt.
+
+-  Add security headers, check them with a tool, and enable a report uri on them to know in real-time the violations happening in the browser.
+
+-  JWT encrypted tokens(JWE) by preference or at least signed tokens(JWS).
+
+-  Obfuscate your Javascript with at least an open source tools, e.g javascript-obfuscator.
+
+-  Sign the request with an HMAC and use the Web Cryptography API to help you with that.
+
+-  Use reCAPTCHA V3 from Google or similar tool from other vendor. This type of recaptcha doesn't require user interaction.
+
+-  Web Application Firewall(WAF) in front of your API server.
+
+-  User Behavior Analytics(UBA), that will use Artificial Intelligence(AI) try to tell apart the who from the what.
