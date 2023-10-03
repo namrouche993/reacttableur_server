@@ -83,8 +83,9 @@ app.post('/register',authenticate, (req, res) => {
   const receivedUsername = req.body.idusername;
 
   console.log('httponly cookie :')
-  const myCookie_token = req.cookies['jwtToken'];  // Replace 'myCookieName' with your actual cookie name
-  
+  const myCookie_token = req.cookies['jwtToken2'];  // Replace 'myCookieName' with your actual cookie name
+  console.log(myCookie_token);
+
   const decoded = jwt.verify(myCookie_token, secretKey);
   console.log('decoded :');
   console.log(decoded);
@@ -129,7 +130,7 @@ app.post('/api/login', (req, res) => {
   const { idusername,dataa } = req.body;
   const mymodfind = MyModelMongoose.find({});
   console.log('mymodfind : ')
-  //console.log(mymodfi  nd)
+  //console.log(mymodfi  nd )
   const newRecord = new MyModelMongoose({
     "idusername":idusername,
     "dataa":dataa
@@ -139,9 +140,11 @@ app.post('/api/login', (req, res) => {
   // Create a JWT token with the user's username
   const token = jwt.sign({ idusername }, secretKey);
   console.log(token);
-  res.cookie('jwtToken', token, { httpOnly: true,  maxAge: 8640000000 });
+  console.log('we will call res.cookie');
+  res.cookie('jwtToken2', token, { httpOnly: true,  maxAge: 8640000000 });
+  console.log(req.cookies['jwtToken2'])
   //res.cookie('cookie_name', 'cookie_value');  
-  //res.json({ token });
+  // res.json({ token });
 });
 
 
