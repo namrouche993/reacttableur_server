@@ -12,8 +12,8 @@ const secretKey = '425cac990d726cd10669e2957c6f2ebef6e2b1f4f61dffc011c7327e73031
 
 var bodyParser = require('body-parser')
 const requestIp = require('request-ip');
-const generateRandomString = require('./Randst_server.js');
-
+const generateRandomString = require('./Tools/Randst_server');
+const {isValidEmail,isValidPhoneNumber} = require('./Tools/IsValid');
 const app = express()
 
 app.use(express.json());
@@ -47,7 +47,7 @@ var mongooseRouter = require('./mongooseRouter.js')
 
 app.use('/mongooseRouter', mongooseRouter);
 const last_row_after_header = 15; // editable 
-const ddatafct_verify = require('./Hot_validators/data_to_verify.js')
+const {ddatafct_verify , retreived_data} = require('./Hot_validators/data_to_verify.js')
 
 
 const updateByUsername = async (username, newData) => {
@@ -72,15 +72,15 @@ app.post('/register',authenticate, (req, res) => {
    console.log('we are in register')
    //const { username, password } = req.body;
    
-   //res.status(201).send('User registered successfully');
+   //res.status(201).send('User registered successfully');;
  });
 
  app.post('/beacondata',express.json(), express.text(), (req, res) => {
   // Handle the received data
   console.log('req.body :')
 
-  const receivedData = JSON.parse(req.body.jsonData_whenclosed); //JSON.parse(req.body) ;
-  const receivedUsername = req.body.idusername;
+  const receivedData = JSON.parse(req.body.jsonData_whenclosed); //JSON.parse(req.body) ;!!
+  const receivedUsername = req.body.idusername00;
 
   console.log('httponly cookie :')
   const myCookie_token = req.cookies['jwtToken'];  // Replace 'myCookieName' with your actual cookie name
@@ -88,9 +88,10 @@ app.post('/register',authenticate, (req, res) => {
   const decoded = jwt.verify(myCookie_token, secretKey);
   console.log('decoded :');
   console.log(decoded);
+  console.log(receivedUsername)
 
-  if (decoded.idusername !== receivedUsername) {
-    console.log('we are inside decoded.idusername !== idusername')
+  if (decoded.idusername_from_generated !== receivedUsername) {
+    console.log('we are inside decoded.idusername_from_generated !== idusername')
     return res.status(403).json({ message: 'Forbidden' });
   }
 
@@ -107,7 +108,12 @@ app.post('/register',authenticate, (req, res) => {
     }); 
   }
 
-  updateByUsername(decoded.idusername, receivedData);
+  if(typeof receivedData == 'string'){
+    var receivedData2 = JSON.parse(receivedData)
+  } else {
+    var receivedData2 = receivedData
+  }
+  updateByUsername(decoded.idusername_from_generated, receivedData2);
 
 
   // Respond with a success message
@@ -123,25 +129,135 @@ app.post('/api/saveData',(req,res)=>{
   res.status(201).send('Data received successfully');
 });
 
+app.post('/api/ownenter', async (req, res) => {
+  console.log('we are in api/ownenter  ::: ')
+  const {ownroute} = req.body;
+  console.log(ownroute)
+  var user_by_route = await MyModelMongoose.findOne({"hisownroute":ownroute});
+  const myCookie_token = req.cookies['jwtToken'];  //// */ Replace 'myCookieName' with your actual cookie name
+  console.log(myCookie_token);
+  console.log(user_by_route);
 
-app.post('/api/login', (req, res) => {
-  console.log('we will call api/login nnnnnnnnnnnnnnnnnnnnnnn')
-  const { idusername,dataa } = req.body;
-  const mymodfind = MyModelMongoose.find({});
-  console.log('mymodfind : ')
-  //console.log(mymodfi  nd)
-  const newRecord = new MyModelMongoose({
-    "idusername":idusername,
-    "dataa":dataa
-  });
-  newRecord.save();
+  if(!user_by_route){
+    res.status(401).send('Authentication failed !!!.');
+  } else if(user_by_route.token !== myCookie_token){
+    res.status(401).send('Authentication failed !!!.');
+  } else {
+    res.json({"organisme":user_by_route.organisme,"region":user_by_route.region})
+  }
+});
+
+app.post('/api/enter', async (req, res) => {
+  //const {act_data,idusername} = req.body;;
+  
+  //const {idusername,data_now} = req.body;
+  const {idusername} = req.body;
+
+  console.log('we are in api/enter : ')
+  console.log('idusername :');
+  console.log(idusername);
+
+  const myCookie_token_in_enter = req.cookies['jwtToken'];  /// Replace 'myCookieName' with your actual cookie name
+  
+  if(myCookie_token_in_enter!==undefined && myCookie_token_in_enter!==null){
+    console.log('first cond')
+    const decoded_in_enter = jwt.verify(myCookie_token_in_enter, secretKey);
+    console.log(decoded_in_enter)
+    console.log(decoded_in_enter.idusername_from_generated);
+    console.log(idusername);
+    if (decoded_in_enter.idusername_from_generated == idusername && idusername!==null) {
+      //if(data_now){
+        
+        /*
+        console.log('we update the data when etnering :')
+        const updatedUser = await MyModelMongoose.findOneAndUpdate(
+          { idusername: idusername },
+          { $set: {dataa: data_now}},
+        );
+        */
+        var user_in_enter = await MyModelMongoose.findOne({"idusername":idusername})
+        console.log(user_in_enter);
+        console.log(user_in_enter.hisownroute);
+        var user_own_route = 'api/'+user_in_enter.hisownroute
+        res.json({"hisownroute": user_own_route});
+      //}
+      console.log('second cond');
+      //res.status(201).send('User registered successfully');
+    } else {
+      console.log('third cond')
+      res.status(401).send('Authentication failed. Please provide valid credentials.');
+    }
+  } else {
+    console.log('fourth cond')
+    res.status(401).send('Already entered.');
+  }
+  
+});
+
+app.post('/api/login', async (req, res) => {
+  console.log('we will call api/login nnnnnnnnnnnnnnnnnnnnnnn');
+  const { organisme, region,email,phoneNumber } = req.body;
+  var idusername_from_generated = generateRandomString(14);
+  console.log(idusername_from_generated)
+  var dataa_inital = retreived_data;
+
+  const organisme_to_check = organisme_data.find(u => u.val === organisme);
+  const region_to_check = region_data.find(u => u.matriculeregion === region);
+  const email_check = isValidEmail(email);
+  const phoneNumber_check = isValidPhoneNumber(phoneNumber);
+
+  if (!organisme_to_check || !region_to_check || !email_check || !phoneNumber_check ) {
+    res.status(401).send('Authentication failed. Please provide valid credentials.');
+  } else {
+      //const { idusername,dataa } = req.body;//!!
+  
+  //const mymodfind = MyModelMongoose.find({});
+  //console.log('mymodfind : ')
+  //console.log(mymodfi  nd)!!
+
+  
+  try {
   
   // Create a JWT token with the user's username
-  const token = jwt.sign({ idusername }, secretKey);
+  const token = jwt.sign({ idusername_from_generated }, secretKey);
   console.log(token);
-  res.cookie('jwtToken', token, { httpOnly: true,  maxAge: 8640000000 });
-  //res.cookie('cookie_name', 'cookie_value');  
+
+  var hisownroute = generateRandomString(25).toLowerCase();
+  //const hisownroute = jwt.sign({idusername_from_generated,email,region,phoneNumber})
+
+    const newRecord = new MyModelMongoose({
+      "idusername":idusername_from_generated,
+      "dataa":dataa_inital,
+  
+      "organisme":organisme,
+      "region":region,
+      "email":email,
+      "phoneNumber":phoneNumber,
+      "hisownroute":hisownroute,
+      "token":token
+    });
+    //newRecord.save();
+    
+    await newRecord.save();
+    //const savedItem = await newRecord.save();
+    //res.json(savedItem);
+
+    res.cookie('jwtToken', token, { httpOnly: true,  maxAge: 8640000000 });
+    res.json({"idusername_to_client_side":idusername_from_generated,"hisownroute":hisownroute});
+    console.log('after resjson');
+      
+  
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+
+  //res.cookie('cookie_name', 'cookie_value');;
   //res.json({ token });
+  
+  //res.status(201).send('User registered successfully');!!!!!
+  }
+
+  
 });
 
 
@@ -153,8 +269,8 @@ app.post('/hello', function(req, res){
 });
 
 
-app.get('/things/:name/:id', function(req, res) {
-   res.send('id: ' + req.params.id + ' and name: ' + req.params.name );
+app.get('/api/:ownroute', function(req, res) {
+   res.send('own route : ' + req.params.ownroute);
    //http://localhost:5000/things/nadjib/45
 });
 

@@ -19,6 +19,22 @@ const MySchema = new Schema({
     required: false,
     type: String
   },  // Define your schema properties here
+  email: {
+    required: false,
+    type: String
+  },
+  phoneNumber: {
+    required:false,
+    type: String
+  },
+  hisownroute: {
+    required:false,
+    type: String
+  },
+  token: {
+    required:true,
+    type: String
+  }
 }, { collection: 'spreadsheet' });
 
 const MyModelMongoose = mongoose.model('spreadsheet', MySchema);

@@ -37,7 +37,6 @@ function authenticate(req, res, next) {
       res.status(401).send('Authentication failed. Please provide valid credentials.');
     } else {
       res.status(201).send('User registered successfully');
-
     }
   
     // If authentication is successful, store the user object in the request for future use

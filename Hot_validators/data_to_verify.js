@@ -158,4 +158,4 @@ function ddatafct_verify(last_row_after_header,retreived_data){
 
 //var data_to_verify =  ddatafct_verify(last_row_after_header);
 //console.log(data_to_verify);
-module.exports = ddatafct_verify;
+module.exports = {ddatafct_verify , retreived_data};
