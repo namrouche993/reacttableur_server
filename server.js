@@ -139,10 +139,13 @@ app.post('/api/ownenter', async (req, res) => {
   console.log(user_by_route);
 
   if(!user_by_route){
-    res.status(401).send('Authentication failed !!!.');
+    console.log('1cond')
+    res.status(400).send('Authentication failed !!!.');
   } else if(user_by_route.token !== myCookie_token){
+    console.log('2cond')
     res.status(401).send('Authentication failed !!!.');
   } else {
+    console.log('3cond')
     res.json({"organisme":user_by_route.organisme,"region":user_by_route.region})
   }
 });
