@@ -3,7 +3,7 @@ const authorizeUser = (req, res, next) => {
     //const token = req.header('Authorization');
     //console.log(token);
     
-    const token = req.cookies.jwtToken;
+    const token = req.cookies.jwtTokentableur;
     console.log(token);
   
     const idusername = req.params.idusername;

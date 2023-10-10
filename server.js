@@ -8,6 +8,10 @@ const cookieParser = require('cookie-parser');
 
 const bcrypt = require('bcryptjs');
 const secretKey = '425cac990d726cd10669e2957c6f2ebef6e2b1f4f61dffc011c7327e73031620'; // Replace with your actual secret key
+//const nodefetch = require('node-fetch'); //nodefetch
+const nodefetch = import('node-fetch').then(module => module.default);
+
+const RECAPTCHA_SECRET_KEY = '6LfIgpAoAAAAAKPs3UkRBQXxMhKHFS8BCQnLbj49';
 
 
 var bodyParser = require('body-parser')
@@ -83,7 +87,7 @@ app.post('/register',authenticate, (req, res) => {
   const receivedUsername = req.body.idusername00;
 
   console.log('httponly cookie :')
-  const myCookie_token = req.cookies['jwtToken'];  // Replace 'myCookieName' with your actual cookie name
+  const myCookie_token = req.cookies['jwtTokentableur'];  // Replace 'myCookieName' with your actual cookie name
   
   const decoded = jwt.verify(myCookie_token, secretKey);
   console.log('decoded :');
@@ -134,7 +138,7 @@ app.post('/api/ownenter', async (req, res) => {
   const {ownroute} = req.body;
   console.log(ownroute)
   var user_by_route = await MyModelMongoose.findOne({"hisownroute":ownroute});
-  const myCookie_token = req.cookies['jwtToken'];  //// */ Replace 'myCookieName' with your actual cookie name
+  const myCookie_token = req.cookies['jwtTokentableur'];  //// */ Replace 'myCookieName' with your actual cookie name
   console.log(myCookie_token);
   console.log(user_by_route);
 
@@ -160,7 +164,7 @@ app.post('/api/enter', async (req, res) => {
   console.log('idusername :');
   console.log(idusername);
 
-  const myCookie_token_in_enter = req.cookies['jwtToken'];  /// Replace 'myCookieName' with your actual cookie name
+  const myCookie_token_in_enter = req.cookies['jwtTokentableur'];  /// Replace 'myCookieName' with your actual cookie name
   
   if(myCookie_token_in_enter!==undefined && myCookie_token_in_enter!==null){
     console.log('first cond')
@@ -198,7 +202,11 @@ app.post('/api/enter', async (req, res) => {
 });
 
 app.post('/api/login', async (req, res) => {
-  console.log('we will call api/login nnnnnnnnnnnnnnnnnnnnnnn');
+  console.log('we will call api/login nnnnnnnnnnnnnnnnnnnnnnn'); //a
+  const tokenRecaptcha = req.body.recaptchaToken;
+  console.log('tokenRecaptcha :')
+  console.log(tokenRecaptcha)
+  
   const { organisme, region,email,phoneNumber } = req.body;
   var idusername_from_generated = generateRandomString(14);
   console.log(idusername_from_generated)
@@ -245,7 +253,7 @@ app.post('/api/login', async (req, res) => {
     //const savedItem = await newRecord.save();
     //res.json(savedItem);
 
-    res.cookie('jwtToken', token, { httpOnly: true,  maxAge: 8640000000 });
+    res.cookie('jwtTokentableur', token, { httpOnly: true,  maxAge: 8640000000 });
     res.json({"idusername_to_client_side":idusername_from_generated,"hisownroute":hisownroute});
     console.log('after resjson');
       
