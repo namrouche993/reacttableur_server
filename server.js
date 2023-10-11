@@ -9,7 +9,10 @@ const cookieParser = require('cookie-parser');
 const bcrypt = require('bcryptjs');
 const secretKey = '425cac990d726cd10669e2957c6f2ebef6e2b1f4f61dffc011c7327e73031620'; // Replace with your actual secret key
 //const nodefetch = require('node-fetch'); //nodefetch
-const nodefetch = import('node-fetch').then(module => module.default);
+
+
+//const fetch = import('node-fetch').then(module => module.default);
+const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 
 const RECAPTCHA_SECRET_KEY = '6LfIgpAoAAAAAKPs3UkRBQXxMhKHFS8BCQnLbj49';
 
@@ -136,11 +139,11 @@ app.post('/api/saveData',(req,res)=>{
 app.post('/api/ownenter', async (req, res) => {
   console.log('we are in api/ownenter  ::: ')
   const {ownroute} = req.body;
-  console.log(ownroute)
+  //console.log(ownroute)
   var user_by_route = await MyModelMongoose.findOne({"hisownroute":ownroute});
   const myCookie_token = req.cookies['jwtTokentableur'];  //// */ Replace 'myCookieName' with your actual cookie name
   console.log(myCookie_token);
-  console.log(user_by_route);
+  //console.log(user_by_route);
 
   if(!user_by_route){
     console.log('1cond')
@@ -185,7 +188,7 @@ app.post('/api/enter', async (req, res) => {
         var user_in_enter = await MyModelMongoose.findOne({"idusername":idusername})
         console.log(user_in_enter);
         console.log(user_in_enter.hisownroute);
-        var user_own_route = 'api/'+user_in_enter.hisownroute
+        var user_own_route = 'tab/'+user_in_enter.hisownroute
         res.json({"hisownroute": user_own_route});
       //}
       console.log('second cond');
@@ -202,70 +205,85 @@ app.post('/api/enter', async (req, res) => {
 });
 
 app.post('/api/login', async (req, res) => {
-  console.log('we will call api/login nnnnnnnnnnnnnnnnnnnnnnn'); //a
+  console.log('we will call api/login nnnnnnnnnnnnnnnnnnnnnnn'); //aa
   const tokenRecaptcha = req.body.recaptchaToken;
   console.log('tokenRecaptcha :')
   console.log(tokenRecaptcha)
   
-  const { organisme, region,email,phoneNumber } = req.body;
-  var idusername_from_generated = generateRandomString(14);
-  console.log(idusername_from_generated)
-  var dataa_inital = retreived_data;
-
-  const organisme_to_check = organisme_data.find(u => u.val === organisme);
-  const region_to_check = region_data.find(u => u.matriculeregion === region);
-  const email_check = isValidEmail(email);
-  const phoneNumber_check = isValidPhoneNumber(phoneNumber);
-
-  if (!organisme_to_check || !region_to_check || !email_check || !phoneNumber_check ) {
-    res.status(401).send('Authentication failed. Please provide valid credentials.');
-  } else {
-      //const { idusername,dataa } = req.body;//!!
-  
-  //const mymodfind = MyModelMongoose.find({});
-  //console.log('mymodfind : ')
-  //console.log(mymodfi  nd)!!
-
-  
+  const verifyUrlRecaptcha = `https://www.google.com/recaptcha/api/siteverify?secret=${RECAPTCHA_SECRET_KEY}&response=${tokenRecaptcha}`;
+  console.log(verifyUrlRecaptcha);
+ 
   try {
-  
-  // Create a JWT token with the user's username
-  const token = jwt.sign({ idusername_from_generated }, secretKey);
-  console.log(token);
+    const responseRecaptcha = await fetch(verifyUrlRecaptcha, { method: 'POST' });
+    const dataRecaptcha = await responseRecaptcha.json();
 
-  var hisownroute = generateRandomString(25).toLowerCase();
-  //const hisownroute = jwt.sign({idusername_from_generated,email,region,phoneNumber})
+    if (dataRecaptcha.success) {
+      //res.status(200).json({ success: true, message: 'reCAPTCHA verification successful' });
 
-    const newRecord = new MyModelMongoose({
-      "idusername":idusername_from_generated,
-      "dataa":dataa_inital,
-  
-      "organisme":organisme,
-      "region":region,
-      "email":email,
-      "phoneNumber":phoneNumber,
-      "hisownroute":hisownroute,
-      "token":token
-    });
-    //newRecord.save();
+      const { organisme, region,email,phoneNumber } = req.body;
+      var idusername_from_generated = generateRandomString(14);
+      console.log(idusername_from_generated)
+      var dataa_inital = retreived_data;
     
-    await newRecord.save();
-    //const savedItem = await newRecord.save();
-    //res.json(savedItem);
-
-    res.cookie('jwtTokentableur', token, { httpOnly: true,  maxAge: 8640000000 });
-    res.json({"idusername_to_client_side":idusername_from_generated,"hisownroute":hisownroute});
-    console.log('after resjson');
+      const organisme_to_check = organisme_data.find(u => u.val === organisme);
+      const region_to_check = region_data.find(u => u.matriculeregion === region);
+      const email_check = isValidEmail(email);
+      const phoneNumber_check = isValidPhoneNumber(phoneNumber);
+    
+      if (!organisme_to_check || !region_to_check || !email_check || !phoneNumber_check ) {
+        res.status(401).send('Authentication failed. Please provide valid credentials.');
+      } else {
+          //const { idusername,dataa } = req.body;//!!
       
-  
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
+      //const mymodfind = MyModelMongoose.find({});
+      //console.log('mymodfind : ')
+      //console.log(mymodfi  nd)!!
+    
+      
+      try {
+      
+      // Create a JWT token with the user's username
+      const token = jwt.sign({ idusername_from_generated }, secretKey);
+      console.log(token);
+    
+      var hisownroute = generateRandomString(25).toLowerCase();
+      //const hisownroute = jwt.sign({idusername_from_generated,email,region,phoneNumber})
+    
+        const newRecord = new MyModelMongoose({
+          "idusername":idusername_from_generated,
+          "dataa":dataa_inital,
+      
+          "organisme":organisme,
+          "region":region,
+          "email":email,
+          "phoneNumber":phoneNumber,
+          "hisownroute":hisownroute,
+          "token":token
+        });
+        //newRecord.save();
+        
+        await newRecord.save();
+        //const savedItem = await newRecord.save();
+        //res.json(savedItem);
+    
+        res.cookie('jwtTokentableur', token, { httpOnly: true,  maxAge: 8640000000 });
+        res.json({"idusername_to_client_side":idusername_from_generated,"hisownroute":hisownroute});
+        console.log('after resjson');
+          
+      
+      } catch (error) {
+        res.status(400).json({ message: error.message });
+      }
+    
+      }
+    
 
-  //res.cookie('cookie_name', 'cookie_value');;
-  //res.json({ token });
-  
-  //res.status(201).send('User registered successfully');!!!!!
+    } else {
+      res.status(400).json({ success: false, message: 'reCAPTCHA verification failed' });
+    }
+  } catch (error) {
+    console.error('Error verifying reCAPTCHA:', error);
+    res.status(500).json({ success: false, message: 'An error occurred during reCAPTCHA verification' });
   }
 
   
