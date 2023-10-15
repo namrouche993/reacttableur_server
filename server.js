@@ -31,16 +31,16 @@ app.use(cookieParser());
 //var things = require('./things.js');
 //const { sup , how }= require('./middle.js');
 
-const {organisme_data,region_data} = require('./users'); // Import the users array from users.js
+const {organisme_data,region_data} = require('./users'); // Import the users array from users.js !!
 const authenticate  = require('./authenticate.js');
 
 
-//app.use(requestIp.mw());
+//app.use(requestIp.mw()); !!
 //app.use(sup);
 //app.use('/things', things);
 
 
-mongoose.connect('mongodb://localhost/mydatabasetableur', {
+mongoose.connect('mongodb://127.0.0.1:27017/mydatabasetableur', {
   useNewUrlParser: true,
   useUnifiedTopology: true
 });
@@ -141,7 +141,7 @@ app.post('/api/ownenter', async (req, res) => {
   const {ownroute} = req.body;
   //console.log(ownroute)
   var user_by_route = await MyModelMongoose.findOne({"hisownroute":ownroute});
-  const myCookie_token = req.cookies['jwtTokentableur'];  //// */ Replace 'myCookieName' with your actual cookie name
+  const myCookie_token = req.cookies['jwtTokentableur'];  //// */ Replace 'myCookieName' with your actual cookie name//
   console.log(myCookie_token);
   //console.log(user_by_route);
 
