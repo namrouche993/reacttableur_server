@@ -24,7 +24,7 @@ const {isValidEmail,isValidPhoneNumber} = require('./Tools/IsValid');
 const app = express()
 
 app.use(express.json());
-app.use(cors({origin: 'http://localhost:3000',credentials: true}));  // Use the cors middleware
+app.use(cors({origin: 'http://localhost:3000',credentials: true}));  // Use the cors middleware!!!!!!
 app.use(bodyParser.json());
 app.use(cookieParser());
 
@@ -129,15 +129,15 @@ app.post('/register',authenticate, (req, res) => {
 
 
 
-app.post('/api/saveData',(req,res)=>{
+app.post('/tab/saveData',(req,res)=>{
   const { datar_received } = req.body ;
   console.log('data received succesfully ! ')
   console.log(datar_received)
   res.status(201).send('Data received successfully');
 });
 
-app.post('/api/ownenter', async (req, res) => {
-  console.log('we are in api/ownenter  ::: ')
+app.post('/tab/ownenter', async (req, res) => {
+  console.log('we are in tab/ownenter  ::: ')
   const {ownroute} = req.body;
   //console.log(ownroute)
   var user_by_route = await MyModelMongoose.findOne({"hisownroute":ownroute});
@@ -157,13 +157,13 @@ app.post('/api/ownenter', async (req, res) => {
   }
 });
 
-app.post('/api/enter', async (req, res) => {
+app.post('/tab/enter', async (req, res) => {
   //const {act_data,idusername} = req.body;;
   
   //const {idusername,data_now} = req.body;
   const {idusername} = req.body;
 
-  console.log('we are in api/enter : ')
+  console.log('we are in tab/enter : ')
   console.log('idusername :');
   console.log(idusername);
 
@@ -192,7 +192,7 @@ app.post('/api/enter', async (req, res) => {
         res.json({"hisownroute": user_own_route});
       //}
       console.log('second cond');
-      //res.status(201).send('User registered successfully');
+      //res.status(201).send('User registered successfully');!!!!!!!!
     } else {
       console.log('third cond')
       res.status(401).send('Authentication failed. Please provide valid credentials.');
@@ -204,8 +204,8 @@ app.post('/api/enter', async (req, res) => {
   
 });
 
-app.post('/api/login', async (req, res) => {
-  console.log('we will call api/login nnnnnnnnnnnnnnnnnnnnnnn'); //aa
+app.post('/tab/login', async (req, res) => {
+  console.log('we will call tab/login nnnnnnnnnnnnnnnnnnnnnnn'); //aa
   const tokenRecaptcha = req.body.recaptchaToken;
   console.log('tokenRecaptcha :')
   console.log(tokenRecaptcha)
@@ -298,7 +298,7 @@ app.post('/hello', function(req, res){
 });
 
 
-app.get('/api/:ownroute', function(req, res) {
+app.get('/tab/:ownroute', function(req, res) {
    res.send('own route : ' + req.params.ownroute);
    //http://localhost:5000/things/nadjib/45
 });
