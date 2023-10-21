@@ -297,6 +297,25 @@ app.post('/hello', function(req, res){
    res.send("You just called the post method at '/hello'!\n");
 });
 
+app.post('/acc/accessfromurlem',async (req, res) => {
+    console.log('we are in acc/accessfromurlem  ::: ')
+    const {email} = req.body;
+    console.log(email)
+    if(!isValidEmail(email)){
+      res.status(400).send('Authentication failed !!!.');
+    } else {
+    var email_in_db = await MyModelMongoose.findOne({"email":email});
+    console.log('email_in_db')
+    console.log(email_in_db);
+    if(!email_in_db){
+      console.log('1cond')
+      res.status(401).send('Authorization failed !!!.');
+    } else {
+      console.log('we are in email existed !!')
+      res.status(200).json({'idusername_to_client_side':email_in_db.idusername,'email':email_in_db.email});
+    }
+  }
+})
 
 app.get('/tab/:ownroute', function(req, res) {
    res.send('own route : ' + req.params.ownroute);
