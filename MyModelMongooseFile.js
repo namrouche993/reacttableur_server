@@ -34,7 +34,12 @@ const MySchema = new Schema({
   token: {
     required:true,
     type: String
+  },
+  new_email_1: {
+    required:false,
+    type: String
   }
+
 }, { collection: 'spreadsheet' });
 
 const MyModelMongoose = mongoose.model('spreadsheet', MySchema);

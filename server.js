@@ -8,6 +8,7 @@ const cookieParser = require('cookie-parser');
 
 const bcrypt = require('bcryptjs');
 const secretKey = '425cac990d726cd10669e2957c6f2ebef6e2b1f4f61dffc011c7327e73031620'; // Replace with your actual secret key
+
 //const nodefetch = require('node-fetch'); //nodefetch
 
 
@@ -15,6 +16,7 @@ const secretKey = '425cac990d726cd10669e2957c6f2ebef6e2b1f4f61dffc011c7327e73031
 const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 
 const RECAPTCHA_SECRET_KEY = '6LfIgpAoAAAAAKPs3UkRBQXxMhKHFS8BCQnLbj49';
+const RECAPTCHA_ADD_SECRET_KEY = '6LfZqc0oAAAAAPAXdYC8Uc9UJtp7UANML0N6M-FR';
 
 
 var bodyParser = require('body-parser')
@@ -74,6 +76,24 @@ const updateByUsername = async (username, newData) => {
   }
 };
 
+const update_to_add_user = async (email_owner, new_email_of_user1) => {
+  try {
+    const addUser = await MyModelMongoose.findOneAndUpdate(
+      { email: email_owner },
+      { $set: {new_email_1: new_email_of_user1}},
+    );
+
+    if (addUser) {
+      console.log('new email added $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
+      //console.log('User added:', addUser); 
+    } else {
+      console.log('User not found.');
+    }
+  } catch (error) {
+    console.error('Error updating user:', error);
+  }
+};
+
 
 app.post('/register',authenticate, (req, res) => {
    console.log('we are in register')
@@ -121,8 +141,6 @@ app.post('/register',authenticate, (req, res) => {
     var receivedData2 = receivedData
   }
   updateByUsername(decoded.idusername_from_generated, receivedData2);
-
-
   // Respond with a success message
   res.status(200).send('Data received successfully.');
 });
@@ -316,6 +334,54 @@ app.post('/acc/accessfromurlem',async (req, res) => {
     }
   }
 })
+
+
+app.post('/add',async (req, res) => {
+  console.log('we are add  ::: ')
+  const {email_owner,username_owner,new_email_added,recaptchaToken_add} = req.body;
+  console.log(email_owner)
+  console.log(recaptchaToken_add)
+  console.log('********')
+  console.log(RECAPTCHA_ADD_SECRET_KEY)
+  const verifyUrlRecaptcha_add = `https://www.google.com/recaptcha/api/siteverify?secret=${RECAPTCHA_ADD_SECRET_KEY}&response=${recaptchaToken_add}`;
+ 
+  try {
+    const responseRecaptcha_add = await fetch(verifyUrlRecaptcha_add, { method: 'POST' });
+    const dataRecaptcha_add = await responseRecaptcha_add.json();
+    //console.log(responseRecaptcha_add)
+    console.log('-------------------------------------------------')
+    console.log('-------------------------------------------------')
+    console.log(dataRecaptcha_add)
+    if (dataRecaptcha_add.success) {
+      console.log('recaptcha add sucess')
+      const myCookie_token_in_add = req.cookies['jwtTokentableur'];  /// Replace 'myCookieName' with your actual cookie name
+      const decoded_add = jwt.verify(myCookie_token_in_add, secretKey);
+      if(!isValidEmail(email_owner) || !isValidEmail(new_email_added)){
+        console.log('valie email failed owner or new')
+        res.status(400).send('Authentication failed !!!.');
+      } else if(decoded_add.idusername_from_generated !== username_owner){
+        console.log('decoded verification failed')
+
+        res.status(401).send('Authentication incorrect !!!.');
+      } else {
+        console.log('add part success')
+        update_to_add_user(email_owner,new_email_added);
+        res.status(200).json({'inputEmail':new_email_added});
+
+      }
+
+    } else {
+      console.log('recaptcha failed')
+      res.status(400).json({ success: false, message: 'reCAPTCHA verification failed' });
+    }
+  } catch (error) {
+    console.log('catch error ')
+    console.error('Error updating user:', error);
+  }
+
+  
+})
+
 
 app.get('/tab/:ownroute', function(req, res) {
    res.send('own route : ' + req.params.ownroute);
