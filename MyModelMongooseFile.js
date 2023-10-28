@@ -2,44 +2,33 @@ const mongoose = require('mongoose');
 
 const Schema = mongoose.Schema;
 
-const MySchema = new Schema({
-   idusername :{
-    required:false,
-    type:String
-   },
-   dataa:{
-    required:false,
-    type:Array
-   },
-   organisme: {
-    required: false,
-    type: String
-  },
-  region: {
-    required: false,
-    type: String
-  },  // Define your schema properties here
-  email: {
-    required: false,
-    type: String
-  },
-  phoneNumber: {
-    required:false,
-    type: String
-  },
-  hisownroute: {
-    required:false,
-    type: String
-  },
-  token: {
-    required:true,
-    type: String
-  },
-  new_email_1: {
-    required:false,
-    type: String
-  }
+const userSchema_owner = new Schema({
+  idusername: {required:true,type:String},
+  email: {required:true,type:String},
+  pass: {required:true,type:String}, // maybe editable when changing pass to string and not numbers
+  token: {required:true,type:String},
+  owner: {required:true,type:Boolean},
+});
 
+const userSchema_teammate = new Schema({
+  idusername: {required:false,type:String},
+  email: {required:false,type:String},
+  pass: {required:false,type:String}, // maybe editable when changing pass to string and not numbers
+  token: {required:false,type:String},
+  owner: {required:false,type:Boolean},
+});
+
+const MySchema = new Schema({
+  organisme: {required:true,type:String},
+  region: {required:true,type:String},
+  phoneNumber_owner: {required:true,type:String},
+  hisownroute: {required:true,type:String},
+  dataa: {required:true,type:Array},
+  users: {
+    user1: userSchema_owner,
+    user2: userSchema_teammate,
+    user3: userSchema_teammate,
+  },
 }, { collection: 'spreadsheet' });
 
 const MyModelMongoose = mongoose.model('spreadsheet', MySchema);

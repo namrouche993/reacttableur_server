@@ -17,6 +17,7 @@ const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch
 
 const RECAPTCHA_SECRET_KEY = '6LfIgpAoAAAAAKPs3UkRBQXxMhKHFS8BCQnLbj49';
 const RECAPTCHA_ADD_SECRET_KEY = '6LfZqc0oAAAAAPAXdYC8Uc9UJtp7UANML0N6M-FR';
+const RECAPTCHA_ACCESS_SECRET_KEY = '6LcPEtIoAAAAANNWLHaXXYdtBrkeRh2k8Nc6YBmV';
 
 
 var bodyParser = require('body-parser')
@@ -62,9 +63,22 @@ const {ddatafct_verify , retreived_data} = require('./Hot_validators/data_to_ver
 const updateByUsername = async (username, newData) => {
   try {
     const updatedUser = await MyModelMongoose.findOneAndUpdate(
-      { idusername: username },
+      {
+        $or: [
+          { "users.user1.idusername": username },
+          { "users.user2.idusername": username },
+          { "users.user3.idusername": username }
+        ]
+      },
+      //{ idusername: username },
       { $set: {dataa: newData}},
     );
+    console.log('updateUser ---------------- :')
+    //console.log(updatedUser)
+    //console.log(updatedUser.users)
+   // console.log(updatedUser.users.user1)
+   // console.log(updatedUser.users.user2)
+
 
     if (updatedUser) {
       //console.log('User updated:', updatedUser); 
@@ -76,22 +90,70 @@ const updateByUsername = async (username, newData) => {
   }
 };
 
-const update_to_add_user = async (email_owner, new_email_of_user1) => {
-  try {
-    const addUser = await MyModelMongoose.findOneAndUpdate(
-      { email: email_owner },
-      { $set: {new_email_1: new_email_of_user1}},
-    );
+const update_to_add_user = async (email_owner, new_email_of_user,myCookie_token_in_add) => {
+    console.log('essai pass returning value :')
+    console.log('*****************------------------------ ! 00')
+   // console.log(generateRandomString(6).toLocaleUpperCase().toString())
 
-    if (addUser) {
-      console.log('new email added $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
-      //console.log('User added:', addUser); 
-    } else {
-      console.log('User not found.');
+    try {
+      const filter = {
+        "users.user1.email": email_owner,
+        "users.user1.token":myCookie_token_in_add
+      };
+    
+      // Find the document that matches the filter
+      const document = await MyModelMongoose.findOne(filter);
+    
+      if (document && document.users) {
+        if(!document.users.user2 && !document.users.user3){
+          var newidusername = generateRandomString(14);
+
+        // Perform an update if user2 exists
+        var update = {
+          $set: {
+            "users.user2.idusername": newidusername,
+            "users.user2.email": new_email_of_user,
+            "users.user2.token": jwt.sign({ newidusername }, secretKey),
+            "users.user2.owner": false,
+            "users.user2.pass": generateRandomString(6).toLocaleUpperCase().toString(),
+            // Add more fields or update operations as needed
+          }
+        };
+      } else if (document.users.user2 && !document.users.user3){
+        var newidusername = generateRandomString(14);
+
+        var update = {
+          $set: {
+            "users.user3.idusername": newidusername,
+            "users.user3.email": new_email_of_user,
+            "users.user3.token": jwt.sign({ newidusername }, secretKey),
+            "users.user3.owner": false,
+            "users.user3.pass": generateRandomString(6).toLocaleUpperCase().toString(),
+            // Add more fields or update operations as needed
+          }
+        };
+      } else {
+        return console.log('user2 and user3 existed , so do nothing')
+      }
+    
+        // Perform the update using findOneAndUpdate
+        const updatedDoc = await MyModelMongoose.findOneAndUpdate(filter, update, { new: true });
+    
+        if (updatedDoc) {
+          console.log("Document updated:");
+          console.log(updatedDoc.users)
+          console.log(updatedDoc.users.user2)
+        } else {
+          console.log("Document not updated.");
+        }
+      } else {
+        console.log("User2 does not exist or document not found matching the filter.");
+      }
+    } catch (error) {
+      console.error("Error updating user:", error);
     }
-  } catch (error) {
-    console.error('Error updating user:', error);
-  }
+
+    
 };
 
 
@@ -114,8 +176,8 @@ app.post('/register',authenticate, (req, res) => {
   
   const decoded = jwt.verify(myCookie_token, secretKey);
   console.log('decoded :');
-  console.log(decoded);
-  console.log(receivedUsername)
+  //console.log(decoded);
+  //console.log(receivedUsername)
 
   if (decoded.idusername_from_generated !== receivedUsername) {
     console.log('we are inside decoded.idusername_from_generated !== idusername')
@@ -166,7 +228,7 @@ app.post('/tab/ownenter', async (req, res) => {
   if(!user_by_route){
     console.log('1cond')
     res.status(400).send('Authentication failed !!!.');
-  } else if(user_by_route.token !== myCookie_token){
+  } else if(user_by_route.users.user1.token !== myCookie_token){
     console.log('2cond')
     res.status(401).send('Authentication failed !!!.');
   } else {
@@ -203,7 +265,15 @@ app.post('/tab/enter', async (req, res) => {
           { $set: {dataa: data_now}},
         );
         */
-        var user_in_enter = await MyModelMongoose.findOne({"idusername":idusername})
+        var user_in_enter = await MyModelMongoose.findOne({
+          //{"idusername":idusername}
+          $or: [
+            { "users.user1.idusername": idusername },
+            { "users.user2.idusername": idusername },
+            { "users.user3.idusername": idusername }
+          ]
+        }
+          )
         console.log(user_in_enter);
         console.log(user_in_enter.hisownroute);
         var user_own_route = 'tab/'+user_in_enter.hisownroute
@@ -234,6 +304,8 @@ app.post('/tab/login', async (req, res) => {
   try {
     const responseRecaptcha = await fetch(verifyUrlRecaptcha, { method: 'POST' });
     const dataRecaptcha = await responseRecaptcha.json();
+    console.log('dataRecaptcha:')
+    console.log(dataRecaptcha)
 
     if (dataRecaptcha.success) {
       //res.status(200).json({ success: true, message: 'reCAPTCHA verification successful' });
@@ -249,8 +321,10 @@ app.post('/tab/login', async (req, res) => {
       const phoneNumber_check = isValidPhoneNumber(phoneNumber);
     
       if (!organisme_to_check || !region_to_check || !email_check || !phoneNumber_check ) {
+        console.log('!orgniasme or region or email or phonumber')
         res.status(401).send('Authentication failed. Please provide valid credentials.');
       } else {
+        console.log('else !')
           //const { idusername,dataa } = req.body;//!!
       
       //const mymodfind = MyModelMongoose.find({});
@@ -259,30 +333,39 @@ app.post('/tab/login', async (req, res) => {
     
       
       try {
-      
+      console.log('try token login')
       // Create a JWT token with the user's username
       const token = jwt.sign({ idusername_from_generated }, secretKey);
       console.log(token);
     
       var hisownroute = generateRandomString(25).toLowerCase();
       //const hisownroute = jwt.sign({idusername_from_generated,email,region,phoneNumber})
-    
+      console.log('hisownroute:')
+      console.log(hisownroute);
+
         const newRecord = new MyModelMongoose({
-          "idusername":idusername_from_generated,
+          "users.user1.idusername":idusername_from_generated,
           "dataa":dataa_inital,
       
           "organisme":organisme,
           "region":region,
-          "email":email,
-          "phoneNumber":phoneNumber,
+          "users.user1.email":email,
+          "phoneNumber_owner":phoneNumber,
           "hisownroute":hisownroute,
-          "token":token
+          "users.user1.token":token,
+          "users.user1.owner":true,
+          "users.user1.pass":generateRandomString(6).toLocaleUpperCase() // maybe editable when changing string to numbers
         });
+        console.log('newRecord before:')
+        console.log(newRecord)
         //newRecord.save();
         
         await newRecord.save();
         //const savedItem = await newRecord.save();
         //res.json(savedItem);
+
+        console.log('newRecord after Save:')
+        console.log(newRecord)
     
         res.cookie('jwtTokentableur', token, { httpOnly: true,  maxAge: 8640000000 });
         res.json({"idusername_to_client_side":idusername_from_generated,"hisownroute":hisownroute});
@@ -322,7 +405,15 @@ app.post('/acc/accessfromurlem',async (req, res) => {
     if(!isValidEmail(email)){
       res.status(400).send('Authentication failed !!!.');
     } else {
-    var email_in_db = await MyModelMongoose.findOne({"email":email});
+    var email_in_db = await MyModelMongoose.findOne({
+      //"email":email
+      $or: [
+        { "users.user1.email": email },
+        { "users.user2.email": email },
+        { "users.user3.email": email }
+      ]
+    
+    });
     console.log('email_in_db')
     console.log(email_in_db);
     if(!email_in_db){
@@ -330,11 +421,82 @@ app.post('/acc/accessfromurlem',async (req, res) => {
       res.status(401).send('Authorization failed !!!.');
     } else {
       console.log('we are in email existed !!')
-      res.status(200).json({'idusername_to_client_side':email_in_db.idusername,'email':email_in_db.email});
+      res.status(200).json({'idusername_to_client_side':email_in_db.users.user1.idusername,'email':email_in_db.users.user1.email});
     }
   }
 })
 
+app.post('/acc/accessfromurlcp',async (req, res) => {
+  console.log('we are in acc/accessfromurlcp  ::: ')
+  const {email,pinCode,recaptchaTokenAccess} = req.body;
+  console.log(email)
+  if(!isValidEmail(email)){
+    res.status(400).send('Authentication failed !!!.');
+  } else {
+    const verifyUrlRecaptcha_access = `https://www.google.com/recaptcha/api/siteverify?secret=${RECAPTCHA_ACCESS_SECRET_KEY}&response=${recaptchaToken_access}`;
+ 
+    try {
+      const responseRecaptcha_access = await fetch(verifyUrlRecaptcha_access, { method: 'POST' });
+      const dataRecaptcha_access = await responseRecaptcha_access.json();
+      //console.log(responseRecaptcha_add)
+   
+      if (dataRecaptcha_access.success) {
+        
+  var email_in_db = await MyModelMongoose.findOne({
+    //"email":email
+    $or: [
+      { "users.user1.email": email },
+      { "users.user2.email": email },
+      { "users.user3.email": email }
+    ]
+  
+  });
+  console.log('email_in_db')
+  console.log(email_in_db);
+  if(!email_in_db){
+    console.log('1cond')
+    res.status(401).send('Authorization failed !!!.');
+  } else if(email_in_db.users.user2.pass==pinCode) { // editable later
+    console.log('we are in email existed !!')
+    res.status(200).json({'idusername_to_client_side':email_in_db.users.user1.idusername,'email':email_in_db.users.user1.email});
+  } else {
+    res.status(400).send('Authorization invalid !!!.');
+  }
+
+      } else {
+        res.status(400).json({ success: false, message: 'reCAPTCHA verification failed' });
+      }
+    } catch (error) {
+      console.error('Error verifying reCAPTCHA:', error);
+      res.status(500).json({ success: false, message: 'An error occurred during reCAPTCHA verification' });
+    }
+}
+})
+
+app.post('/allowedemails',async (req, res) => {
+  console.log('we are in allowedemails  ::: ')
+
+  const {idusername} = req.body;
+  const myCookie_token_in_allowedemails = req.cookies['jwtTokentableur'];  /// Replace 'myCookieName' with your actual cookie name
+
+  if(myCookie_token_in_allowedemails!==undefined && myCookie_token_in_allowedemails!==null){
+    const decoded_in_allowedemails = jwt.verify(myCookie_token_in_allowedemails, secretKey);
+
+    if (decoded_in_allowedemails.idusername_from_generated == idusername && idusername!==null) {
+      console.log('we are in the 200 request in allowedemails')
+      var user_by_his_allowedemails = await MyModelMongoose.findOne({"users.user1.idusername":idusername});
+      var his_allowedemails2 = user_by_his_allowedemails.users.user2.email;
+      var his_allowedemails3 = user_by_his_allowedemails.users.user3.email;
+      res.status(200).json({"user2email": his_allowedemails2,"user3email":his_allowedemails3});
+    } else {
+      res.status(401).send('Authorization failed !!!.');
+    }
+  } else {
+    res.status(401).send('Authorization failed !!!.');
+
+  }
+
+})
 
 app.post('/add',async (req, res) => {
   console.log('we are add  ::: ')
@@ -365,7 +527,7 @@ app.post('/add',async (req, res) => {
         res.status(401).send('Authentication incorrect !!!.');
       } else {
         console.log('add part success')
-        update_to_add_user(email_owner,new_email_added);
+        update_to_add_user(email_owner,new_email_added,myCookie_token_in_add);
         res.status(200).json({'inputEmail':new_email_added});
 
       }
