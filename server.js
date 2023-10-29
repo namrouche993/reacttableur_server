@@ -133,7 +133,9 @@ const update_to_add_user = async (email_owner, new_email_of_user,myCookie_token_
           }
         };
       } else {
-        return console.log('user2 and user3 existed , so do nothing')
+        console.log('user2 and user3 existed , so do nothing')
+        return false
+        //return res.status(401).send('Add to list is limited !!!.');
       }
     
         // Perform the update using findOneAndUpdate
@@ -152,7 +154,6 @@ const update_to_add_user = async (email_owner, new_email_of_user,myCookie_token_
     } catch (error) {
       console.error("Error updating user:", error);
     }
-
     
 };
 
@@ -477,7 +478,7 @@ app.post('/allowedemails',async (req, res) => {
   console.log('we are in allowedemails  ::: ')
 
   const {idusername} = req.body;
-  const myCookie_token_in_allowedemails = req.cookies['jwtTokentableur'];  /// Replace 'myCookieName' with your actual cookie name
+  const myCookie_token_in_allowedemails = req.cookies['jwtTokentableur'];  /// Replace 'myCookieName' with your actual cookie name::!!!!
 
   if(myCookie_token_in_allowedemails!==undefined && myCookie_token_in_allowedemails!==null){
     const decoded_in_allowedemails = jwt.verify(myCookie_token_in_allowedemails, secretKey);
@@ -485,8 +486,19 @@ app.post('/allowedemails',async (req, res) => {
     if (decoded_in_allowedemails.idusername_from_generated == idusername && idusername!==null) {
       console.log('we are in the 200 request in allowedemails')
       var user_by_his_allowedemails = await MyModelMongoose.findOne({"users.user1.idusername":idusername});
-      var his_allowedemails2 = user_by_his_allowedemails.users.user2.email;
-      var his_allowedemails3 = user_by_his_allowedemails.users.user3.email;
+
+      if( typeof user_by_his_allowedemails.users.user2 !== 'undefined' ){
+        var his_allowedemails2 = user_by_his_allowedemails.users.user2.email;
+      } else {
+        var his_allowedemails2 = null;
+      }
+
+      if(typeof user_by_his_allowedemails.users.user3 !== 'undefined'){
+        var his_allowedemails3 = user_by_his_allowedemails.users.user3.email;
+      } else {
+        var his_allowedemails3 = null;
+      }
+      //var his_allowedemails3 = user_by_his_allowedemails.users.user3.email;
       res.status(200).json({"user2email": his_allowedemails2,"user3email":his_allowedemails3});
     } else {
       res.status(401).send('Authorization failed !!!.');
@@ -527,9 +539,14 @@ app.post('/add',async (req, res) => {
         res.status(401).send('Authentication incorrect !!!.');
       } else {
         console.log('add part success')
-        update_to_add_user(email_owner,new_email_added,myCookie_token_in_add);
+        var updatetoadduser = await update_to_add_user(email_owner,new_email_added,myCookie_token_in_add);
+        updatetoadduser
+        if(updatetoadduser==false){
+          res.status(401).send('Adding to list is limited !!!.');
+        }
+        console.log('we will continue to resstatus200 :')
+        console.log(new_email_added);
         res.status(200).json({'inputEmail':new_email_added});
-
       }
 
     } else {
