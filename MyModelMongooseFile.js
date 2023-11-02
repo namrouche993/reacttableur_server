@@ -5,7 +5,7 @@ const Schema = mongoose.Schema;
 const userSchema_owner = new Schema({
   idusername: {required:true,type:String},
   email: {required:true,type:String},
-  pass: {required:true,type:String}, // maybe editable when changing pass to string and not numbers
+  pass: {required:true,type:Number}, // maybe editable when changing pass to string and not numbers
   token: {required:true,type:String},
   owner: {required:true,type:Boolean},
 });
@@ -13,7 +13,7 @@ const userSchema_owner = new Schema({
 const userSchema_teammate = new Schema({
   idusername: {required:false,type:String},
   email: {required:false,type:String},
-  pass: {required:false,type:String}, // maybe editable when changing pass to string and not numbers
+  pass: {required:false,type:Number}, // maybe editable when changing pass to string and not numbers
   token: {required:false,type:String},
   owner: {required:false,type:Boolean},
 });

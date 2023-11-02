@@ -8,6 +8,7 @@ const cookieParser = require('cookie-parser');
 
 const bcrypt = require('bcryptjs');
 const secretKey = '425cac990d726cd10669e2957c6f2ebef6e2b1f4f61dffc011c7327e73031620'; // Replace with your actual secret key
+const crypto = require('crypto');
 
 //const nodefetch = require('node-fetch'); //nodefetch
 
@@ -22,7 +23,8 @@ const RECAPTCHA_ACCESS_SECRET_KEY = '6LcPEtIoAAAAANNWLHaXXYdtBrkeRh2k8Nc6YBmV';
 
 var bodyParser = require('body-parser')
 const requestIp = require('request-ip');
-const generateRandomString = require('./Tools/Randst_server');
+//const generateRandomString = require('./Tools/Randst_server');
+
 const {isValidEmail,isValidPhoneNumber} = require('./Tools/IsValid');
 const app = express()
 
@@ -42,7 +44,6 @@ const authenticate  = require('./authenticate.js');
 //app.use(sup);
 //app.use('/things', things);
 
-
 mongoose.connect('mongodb://127.0.0.1:27017/mydatabasetableur', {
   useNewUrlParser: true,
   useUnifiedTopology: true
@@ -58,6 +59,19 @@ var mongooseRouter = require('./mongooseRouter.js')
 app.use('/mongooseRouter', mongooseRouter);
 const last_row_after_header = 15; // editable 
 const {ddatafct_verify , retreived_data} = require('./Hot_validators/data_to_verify.js')
+
+
+
+function generateRandomString(length) {  
+  // Generate random bytes and convert them to a string
+  const randomBytes = crypto.randomBytes(length);
+  const randomString = randomBytes.toString('base64')
+    .replace(/\//g, 'x') // Replace '/' with 'x' to avoid encoding issues
+    .replace(/\+/g, 'a') // Replace '+' with 'a' to avoid encoding issues
+    .slice(0, length); // Trim the string to the desired length
+
+  return randomString;
+}
 
 
 const updateByUsername = async (username, newData) => {
@@ -107,6 +121,7 @@ const update_to_add_user = async (email_owner, new_email_of_user,myCookie_token_
       if (document && document.users) {
         if(!document.users.user2 && !document.users.user3){
           var newidusername = generateRandomString(14);
+          var codepass = crypto.randomInt(10000000, 99999999);
 
         // Perform an update if user2 exists
         var update = {
@@ -115,12 +130,30 @@ const update_to_add_user = async (email_owner, new_email_of_user,myCookie_token_
             "users.user2.email": new_email_of_user,
             "users.user2.token": jwt.sign({ newidusername }, secretKey),
             "users.user2.owner": false,
-            "users.user2.pass": generateRandomString(6).toLocaleUpperCase().toString(),
+            "users.user2.pass": codepass,
             // Add more fields or update operations as needed
           }
-        };
+        }
+      } else if(!document.users.user2 && document.users.user3){
+          var newidusername = generateRandomString(14);
+          var codepass = crypto.randomInt(10000000, 99999999);
+
+          console.log('user2 no and user3 yes')
+
+        // Perform an update if user2 exists
+        var update = {
+          $set: {
+            "users.user2.idusername": newidusername,
+            "users.user2.email": new_email_of_user,
+            "users.user2.token": jwt.sign({ newidusername }, secretKey),
+            "users.user2.owner": false,
+            "users.user2.pass": codepass,
+            // Add more fields or update operations as needed
+          }
+        }
       } else if (document.users.user2 && !document.users.user3){
         var newidusername = generateRandomString(14);
+        var codepass = crypto.randomInt(10000000, 99999999);
 
         var update = {
           $set: {
@@ -128,7 +161,7 @@ const update_to_add_user = async (email_owner, new_email_of_user,myCookie_token_
             "users.user3.email": new_email_of_user,
             "users.user3.token": jwt.sign({ newidusername }, secretKey),
             "users.user3.owner": false,
-            "users.user3.pass": generateRandomString(6).toLocaleUpperCase().toString(),
+            "users.user3.pass": codepass,
             // Add more fields or update operations as needed
           }
         };
@@ -145,14 +178,20 @@ const update_to_add_user = async (email_owner, new_email_of_user,myCookie_token_
           console.log("Document updated:");
           console.log(updatedDoc.users)
           console.log(updatedDoc.users.user2)
+          return codepass
         } else {
           console.log("Document not updated.");
+          return false
         }
       } else {
         console.log("User2 does not exist or document not found matching the filter.");
+        return false
+
       }
     } catch (error) {
       console.error("Error updating user:", error);
+      return false
+
     }
     
 };
@@ -489,17 +528,23 @@ app.post('/allowedemails',async (req, res) => {
 
       if( typeof user_by_his_allowedemails.users.user2 !== 'undefined' ){
         var his_allowedemails2 = user_by_his_allowedemails.users.user2.email;
+        var his_allowedcode2 = user_by_his_allowedemails.users.user2.pass;
       } else {
         var his_allowedemails2 = null;
+        var his_allowedcode2 = null;
       }
 
       if(typeof user_by_his_allowedemails.users.user3 !== 'undefined'){
         var his_allowedemails3 = user_by_his_allowedemails.users.user3.email;
+        var his_allowedcode3 = user_by_his_allowedemails.users.user3.pass;
+
       } else {
         var his_allowedemails3 = null;
+        var his_allowedcode3 = null;
+
       }
       //var his_allowedemails3 = user_by_his_allowedemails.users.user3.email;
-      res.status(200).json({"user2email": his_allowedemails2,"user3email":his_allowedemails3});
+      res.status(200).json({"user2":{"useremail": his_allowedemails2,"code":his_allowedcode2},  "user3":{"useremail":his_allowedemails3,"code":his_allowedcode3}   } );
     } else {
       res.status(401).send('Authorization failed !!!.');
     }
@@ -541,12 +586,14 @@ app.post('/add',async (req, res) => {
         console.log('add part success')
         var updatetoadduser = await update_to_add_user(email_owner,new_email_added,myCookie_token_in_add);
         updatetoadduser
+        console.log('updatetoadduser !!!!!!!!!!!!!!!!!!!!!!!')
+        console.log(updatetoadduser)
         if(updatetoadduser==false){
           res.status(401).send('Adding to list is limited !!!.');
         }
         console.log('we will continue to resstatus200 :')
         console.log(new_email_added);
-        res.status(200).json({'inputEmail':new_email_added});
+        res.status(200).json({'inputEmail':new_email_added,"codepass":updatetoadduser});
       }
 
     } else {
@@ -560,6 +607,80 @@ app.post('/add',async (req, res) => {
 
   
 })
+
+
+
+
+app.post('/removedemail',async (req, res) => {
+  console.log('we are in removedemail  ::: ')
+
+  const {emailremoved,idusername} = req.body;
+  const myCookie_token_in_removedemail = req.cookies['jwtTokentableur'];  /// Replace 'myCookieName' with your actual cookie name::!!!!
+
+  if(myCookie_token_in_removedemail!==undefined && myCookie_token_in_removedemail!==null){
+    const decoded_in_removedemail = jwt.verify(myCookie_token_in_removedemail, secretKey);
+
+    if (decoded_in_removedemail.idusername_from_generated == idusername && idusername!==null) {
+      console.log('we are in the 200 request in removedemail')
+     try{
+      const foundDoc = await MyModelMongoose.findOne({
+        $or: [
+          { 'users.user2.email': emailremoved },
+          { 'users.user3.email': emailremoved }
+        ]
+      });
+      console.log('**************')
+      //console.log(foundDoc.users)
+      
+      if (foundDoc) {
+        var unsetField = foundDoc.users.user2 ? (foundDoc.users.user2.email === emailremoved ? 'users.user2' : 'users.user3') : (foundDoc.users.user3 ? (foundDoc.users.user3.email === emailremoved ? 'users.user3' : null) : null  )   ;
+      console.log('unsetField :')
+      console.log(unsetField);
+
+        if(unsetField){
+        // Now update the document to unset the field determined above
+        const updatedDoc_removed = await MyModelMongoose.findOneAndUpdate(
+          { _id: foundDoc._id }, // Assuming you have an _id field in your schema
+          { $unset: { [unsetField]: 1 } },
+          { new: true }
+        );
+      
+        if (updatedDoc_removed) {
+          console.log('Updated document:');
+          res.status(200).send('Document updated');
+        } else {
+          console.log('Failed to update the document.');
+          res.status(500).send('Failed to update the document');
+        }
+      } else {
+        console.log('Document not found.');
+        res.status(404).send('Document not found');   
+      }
+      } else {
+        console.log('no email to remove');
+        res.status(404).send('no email to remove ');
+      }
+      
+  } catch (error) {
+    console.error("Error updating user:", error);
+    res.status(400).send('Authorization failed !!!.');
+  }
+
+      //var his_allowedemails3 = user_by_his_allowedemails.users.user3.email;
+    } else {
+      res.status(401).send('Authorization failed !!!.');
+    }
+  } else {
+    res.status(401).send('Authorization failed !!!.');
+
+  }
+
+})
+
+
+
+
+
 
 
 app.get('/tab/:ownroute', function(req, res) {
