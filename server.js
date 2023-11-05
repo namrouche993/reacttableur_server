@@ -62,15 +62,21 @@ const {ddatafct_verify , retreived_data} = require('./Hot_validators/data_to_ver
 
 
 
-function generateRandomString(length) {  
-  // Generate random bytes and convert them to a string
+function generateRandomString(length,returnNb) {  
   const randomBytes = crypto.randomBytes(length);
+  if(!returnNb){
+  // Generate random bytes and convert them to a string
   const randomString = randomBytes.toString('base64')
     .replace(/\//g, 'x') // Replace '/' with 'x' to avoid encoding issues
     .replace(/\+/g, 'a') // Replace '+' with 'a' to avoid encoding issues
     .slice(0, length); // Trim the string to the desired length
 
   return randomString;
+} else {
+  const numericString = Array.from(randomBytes).map(byte => (byte % 10).toString()).join('').slice(0, length);
+  return numericString;
+}
+
 }
 
 
@@ -95,11 +101,18 @@ const updateByUsername = async (username, newData) => {
 
 
     if (updatedUser) {
+      console.log('updatedUser s')
+      var returning = true;
+      return true
       //console.log('User updated:', updatedUser); 
     } else {
+      var returning = false;
+      return false
       console.log('User not found.');
     }
   } catch (error) {
+    var returning = false;
+    return false
     console.error('Error updating user:', error);
   }
 };
@@ -120,22 +133,22 @@ const update_to_add_user = async (email_owner, new_email_of_user,myCookie_token_
     
       if (document && document.users) {
         if(!document.users.user2 && !document.users.user3){
-          var newidusername = generateRandomString(14);
+          var idusername_from_generated = generateRandomString(14,false);
           var codepass = crypto.randomInt(10000000, 99999999);
 
         // Perform an update if user2 exists
         var update = {
           $set: {
-            "users.user2.idusername": newidusername,
+            "users.user2.idusername": idusername_from_generated,
             "users.user2.email": new_email_of_user,
-            "users.user2.token": jwt.sign({ newidusername }, secretKey),
+            "users.user2.token": jwt.sign({ idusername_from_generated }, secretKey),
             "users.user2.owner": false,
             "users.user2.pass": codepass,
             // Add more fields or update operations as needed
           }
         }
       } else if(!document.users.user2 && document.users.user3){
-          var newidusername = generateRandomString(14);
+          var idusername_from_generated = generateRandomString(14,false);
           var codepass = crypto.randomInt(10000000, 99999999);
 
           console.log('user2 no and user3 yes')
@@ -143,23 +156,23 @@ const update_to_add_user = async (email_owner, new_email_of_user,myCookie_token_
         // Perform an update if user2 exists
         var update = {
           $set: {
-            "users.user2.idusername": newidusername,
+            "users.user2.idusername": idusername_from_generated,
             "users.user2.email": new_email_of_user,
-            "users.user2.token": jwt.sign({ newidusername }, secretKey),
+            "users.user2.token": jwt.sign({ idusername_from_generated }, secretKey),
             "users.user2.owner": false,
             "users.user2.pass": codepass,
             // Add more fields or update operations as needed
           }
         }
       } else if (document.users.user2 && !document.users.user3){
-        var newidusername = generateRandomString(14);
+        var idusername_from_generated = generateRandomString(14,false);
         var codepass = crypto.randomInt(10000000, 99999999);
 
         var update = {
           $set: {
-            "users.user3.idusername": newidusername,
+            "users.user3.idusername": idusername_from_generated,
             "users.user3.email": new_email_of_user,
-            "users.user3.token": jwt.sign({ newidusername }, secretKey),
+            "users.user3.token": jwt.sign({ idusername_from_generated }, secretKey),
             "users.user3.owner": false,
             "users.user3.pass": codepass,
             // Add more fields or update operations as needed
@@ -199,27 +212,30 @@ const update_to_add_user = async (email_owner, new_email_of_user,myCookie_token_
 
 app.post('/register',authenticate, (req, res) => {
    console.log('we are in register')
-   //const { username, password } = req.body;
+   //const { username, password } = req.body;!!
    
    //res.status(201).send('User registered successfully');;
  });
 
- app.post('/beacondata',express.json(), express.text(), (req, res) => {
+ app.post('/beacondata',express.json(), express.text(), async (req, res) => {
   // Handle the received data
   console.log('req.body :')
-
-  const receivedData = JSON.parse(req.body.jsonData_whenclosed); //JSON.parse(req.body) ;!!
+try {
+  
+  const receivedData = JSON.parse(req.body.jsonData_whenclosed); //JSON.parse(req.body) ;!!!!!
   const receivedUsername = req.body.idusername00;
+  console.log('receivedUsername')
+  console.log(receivedUsername)
 
   console.log('httponly cookie :')
   const myCookie_token = req.cookies['jwtTokentableur'];  // Replace 'myCookieName' with your actual cookie name
   
   const decoded = jwt.verify(myCookie_token, secretKey);
   console.log('decoded :');
-  //console.log(decoded);
+  console.log(decoded);
   //console.log(receivedUsername)
 
-  if (decoded.idusername_from_generated !== receivedUsername) {
+  if (Object.values(decoded)[0] !== receivedUsername) {
     console.log('we are inside decoded.idusername_from_generated !== idusername')
     return res.status(403).json({ message: 'Forbidden' });
   }
@@ -242,9 +258,20 @@ app.post('/register',authenticate, (req, res) => {
   } else {
     var receivedData2 = receivedData
   }
-  updateByUsername(decoded.idusername_from_generated, receivedData2);
+  var returningfct = await updateByUsername(Object.values(decoded)[0], receivedData2);
+  if(returningfct){
   // Respond with a success message
+  console.log('beacon success')
   res.status(200).send('Data received successfully.');
+} else {
+  console.log('beacon failed')
+  res.status(400).send('Data received failed.');
+
+}
+
+} catch (error) {
+ console.log('error : ' + error) 
+}
 });
 
 
@@ -261,20 +288,60 @@ app.post('/tab/ownenter', async (req, res) => {
   const {ownroute} = req.body;
   //console.log(ownroute)
   var user_by_route = await MyModelMongoose.findOne({"hisownroute":ownroute});
+  var userr = await MyModelMongoose.findOne({"phoneNumber_owner":"077775566"})
+  //console.log(userr.dataa)
+  console.log('userr')
+  console.log('user_by_route')
+  //console.log(user_by_route);!!!
+  
+  console.log('********************************');
+  console.log('********************************');
+  console.log('********************************');
+
+  
   const myCookie_token = req.cookies['jwtTokentableur'];  //// */ Replace 'myCookieName' with your actual cookie name//
   console.log(myCookie_token);
   //console.log(user_by_route);
 
+console.log('we will enter in try')
+  try {
+      console.log('enter in try')
   if(!user_by_route){
     console.log('1cond')
     res.status(400).send('Authentication failed !!!.');
-  } else if(user_by_route.users.user1.token !== myCookie_token){
-    console.log('2cond')
-    res.status(401).send('Authentication failed !!!.');
   } else {
-    console.log('3cond')
-    res.json({"organisme":user_by_route.organisme,"region":user_by_route.region})
+    console.log('2cond')
+
+    if(myCookie_token){
+      console.log('3cond')
+      const decoded_in_ownenter = jwt.verify(myCookie_token, secretKey);
+      console.log('decoded_in_ownenter')
+     // console.log(decoded_in_ownenter)
+    if (
+    user_by_route.users.user1.token == myCookie_token && user_by_route.users.user1.idusername==Object.values(decoded_in_ownenter)[0] || //decoded_in_ownenter.newidusername
+    user_by_route.users.user2.token == myCookie_token && user_by_route.users.user2.idusername==Object.values(decoded_in_ownenter)[0] || //decoded_in_ownenter.newidusername
+    user_by_route.users.user3.token == myCookie_token && user_by_route.users.user3.idusername==Object.values(decoded_in_ownenter)[0]  //decoded_in_ownenter.newidusername
+    ) {
+    console.log('4cond')
+    //console.log(user_by_route.dataa)
+   // console.log(user_by_route.dataa)
+    console.log(user_by_route.phoneNumber_owner)
+    res.json({"organisme":user_by_route.organisme,
+              "region":user_by_route.region,
+             "dataa":user_by_route.dataa})
+  } else {
+    console.log('5cond')
+    res.status(401).send('Authentication failed !!!.');
   }
+} else {
+  console.log('6cond')
+  res.status(401).send('Authentication failed !!!.');
+}
+}
+} catch (error) {
+  console.log('7cond')
+  res.status(401).send('Authentication failed !!!.');   
+}
 });
 
 app.post('/tab/enter', async (req, res) => {
@@ -294,8 +361,9 @@ app.post('/tab/enter', async (req, res) => {
     const decoded_in_enter = jwt.verify(myCookie_token_in_enter, secretKey);
     console.log(decoded_in_enter)
     console.log(decoded_in_enter.idusername_from_generated);
+    console.log(Object.values(decoded_in_enter)[0])
     console.log(idusername);
-    if (decoded_in_enter.idusername_from_generated == idusername && idusername!==null) {
+    if (Object.values(decoded_in_enter)[0] == idusername && idusername!==null) {
       //if(data_now){
         
         /*
@@ -351,7 +419,7 @@ app.post('/tab/login', async (req, res) => {
       //res.status(200).json({ success: true, message: 'reCAPTCHA verification successful' });
 
       const { organisme, region,email,phoneNumber } = req.body;
-      var idusername_from_generated = generateRandomString(14);
+      var idusername_from_generated = generateRandomString(14,false);
       console.log(idusername_from_generated)
       var dataa_inital = retreived_data;
     
@@ -378,7 +446,7 @@ app.post('/tab/login', async (req, res) => {
       const token = jwt.sign({ idusername_from_generated }, secretKey);
       console.log(token);
     
-      var hisownroute = generateRandomString(25).toLowerCase();
+      var hisownroute = generateRandomString(25,false).toLowerCase();
       //const hisownroute = jwt.sign({idusername_from_generated,email,region,phoneNumber})
       console.log('hisownroute:')
       console.log(hisownroute);
@@ -394,13 +462,16 @@ app.post('/tab/login', async (req, res) => {
           "hisownroute":hisownroute,
           "users.user1.token":token,
           "users.user1.owner":true,
-          "users.user1.pass":generateRandomString(6).toLocaleUpperCase() // maybe editable when changing string to numbers
+          "users.user1.pass":generateRandomString(6,true) // maybe editable when changing string to numbers
         });
         console.log('newRecord before:')
         console.log(newRecord)
         //newRecord.save();
         
+        console.log('we will make await newrecord.save')
         await newRecord.save();
+        console.log('we did await newrecord.save')
+
         //const savedItem = await newRecord.save();
         //res.json(savedItem);
 
@@ -413,6 +484,7 @@ app.post('/tab/login', async (req, res) => {
           
       
       } catch (error) {
+        console.log('catch error ')
         res.status(400).json({ message: error.message });
       }
     
@@ -455,25 +527,63 @@ app.post('/acc/accessfromurlem',async (req, res) => {
     
     });
     console.log('email_in_db')
-    console.log(email_in_db);
-    if(!email_in_db){
-      console.log('1cond')
-      res.status(401).send('Authorization failed !!!.');
-    } else {
-      console.log('we are in email existed !!')
-      res.status(200).json({'idusername_to_client_side':email_in_db.users.user1.idusername,'email':email_in_db.users.user1.email});
+    //console.log(email_in_db);
+
+      
+  if (email_in_db) {
+    console.log('we are in emailindb')
+    if(email_in_db.users.user1){
+      console.log('we are in emailindb users.user1')
+      if (email_in_db.users.user1.email === email) {
+        var findemailinFields = email_in_db.users.user1;
+
+        res.status(200).json({'idusername_to_client_side':email_in_db.users.user1.idusername,
+                              'email':email_in_db.users.user1.email});
+
+        console.log('Email found in users.user1.email');
+      } 
+      else if(email_in_db.users.user2){
+        console.log('we are in emailindb users.user2')
+        if (email_in_db.users.user2.email === email) {
+          var findemailinFields = email_in_db.users.user2;
+          console.log('Email found in users.user2.email');
+          res.status(200).json({'idusername_to_client_side':email_in_db.users.user2.idusername,
+          'email':email_in_db.users.user2.email});
+
+        }
+        else if(email_in_db.users.user3){
+          console.log('we are in emailindb users.user3')
+          if (email_in_db.users.user3.email === email) {
+            var findemailinFields = email_in_db.users.user3;
+            res.status(200).json({'idusername_to_client_side':email_in_db.users.user3.idusername,
+            'email':email_in_db.users.user3.email});
+
+            console.log('Email found in users.user3.email');
+          } else {
+            console.log('findemailinFields will be null')
+            var findemailinFields =null      
+          }
+        }
+      }
     }
+  } else {
+    console.log('!email_in_db')
+    res.status(401).send('Authorization failed !!!.');
+  }
+  console.log('we are in email existed !!')
+
   }
 })
 
 app.post('/acc/accessfromurlcp',async (req, res) => {
   console.log('we are in acc/accessfromurlcp  ::: ')
   const {email,pinCode,recaptchaTokenAccess} = req.body;
+  const pinCodenotArray = pinCode.join('');
   console.log(email)
   if(!isValidEmail(email)){
-    res.status(400).send('Authentication failed !!!.');
+    res.status(400).send('Authentication failed !!!!!!!.');
   } else {
-    const verifyUrlRecaptcha_access = `https://www.google.com/recaptcha/api/siteverify?secret=${RECAPTCHA_ACCESS_SECRET_KEY}&response=${recaptchaToken_access}`;
+    const verifyUrlRecaptcha_access = `https://www.google.com/recaptcha/api/siteverify?secret=${RECAPTCHA_ACCESS_SECRET_KEY}&response=${recaptchaTokenAccess}`;
  
     try {
       const responseRecaptcha_access = await fetch(verifyUrlRecaptcha_access, { method: 'POST' });
@@ -491,14 +601,66 @@ app.post('/acc/accessfromurlcp',async (req, res) => {
     ]
   
   });
-  console.log('email_in_db')
-  console.log(email_in_db);
+  console.log('email :')
+  console.log(email);
+
+
+  if (email_in_db) {
+    console.log('we are in emailindb')
+    if(email_in_db.users.user1){
+      console.log('we are in emailindb users.user1')
+      if (email_in_db.users.user1.email === email) {
+        var findpassinFields = email_in_db.users.user1;
+        console.log('Email found in users.user1.email');
+      } 
+      else if(email_in_db.users.user2){
+        console.log('we are in emailindb users.user2')
+        if (email_in_db.users.user2.email === email) {
+          var findpassinFields = email_in_db.users.user2;
+          console.log('Email found in users.user2.email');
+        }
+        else if(email_in_db.users.user3){
+          console.log('we are in emailindb users.user3')
+          if (email_in_db.users.user3.email === email) {
+            var findpassinFields = email_in_db.users.user3;
+            console.log('Email found in users.user3.email');
+          } else {
+            console.log('findpassinFields will be null')
+            var findpassinFields =null      
+          }
+        }
+      }
+    }
+  }
+
+  console.log('we are before condition of !email_in_db');
+  //console.log(email_in_db.users)
+  console.log(findpassinFields)
+  console.log(pinCode)
+  console.log(pinCodenotArray);
+  console.log(findpassinFields.pass);
+  console.log(email_in_db.users.user2);
+
+
   if(!email_in_db){
     console.log('1cond')
     res.status(401).send('Authorization failed !!!.');
-  } else if(email_in_db.users.user2.pass==pinCode) { // editable later
+  } else if (findpassinFields==null) {
+    res.status(401).send('Authorization failed !!!!!!.');
+  } else if(findpassinFields.pass==pinCodenotArray) { // editable later
     console.log('we are in email existed !!')
-    res.status(200).json({'idusername_to_client_side':email_in_db.users.user1.idusername,'email':email_in_db.users.user1.email});
+    res.cookie('jwtTokentableur', findpassinFields.token, { httpOnly: true,  maxAge: 8640000000 });
+
+    res.status(200).json({
+    'idusername_to_client_side':findpassinFields.idusername,
+    'email':findpassinFields.email,
+    'phoneNumber_owner':email_in_db.phoneNumber_owner,
+    'organisme':email_in_db.organisme,
+    'region':email_in_db.region,
+    'dataa':email_in_db.dataa,
+    'hisownroute':email_in_db.hisownroute
+    //,'token_aftersuccesspass':findpassinFields.token
+  });
   } else {
     res.status(400).send('Authorization invalid !!!.');
   }
@@ -522,10 +684,20 @@ app.post('/allowedemails',async (req, res) => {
   if(myCookie_token_in_allowedemails!==undefined && myCookie_token_in_allowedemails!==null){
     const decoded_in_allowedemails = jwt.verify(myCookie_token_in_allowedemails, secretKey);
 
-    if (decoded_in_allowedemails.idusername_from_generated == idusername && idusername!==null) {
+    if (Object.values(decoded_in_allowedemails)[0] == idusername && idusername!==null) {
       console.log('we are in the 200 request in allowedemails')
       var user_by_his_allowedemails = await MyModelMongoose.findOne({"users.user1.idusername":idusername});
+      
+      console.log('user_by_his_allowedemails : ')
+      //console.log(user_by_his_allowedemails)
+      var his_allowedemails2 = null;
+      var his_allowedcode2 = null;
 
+      var his_allowedemails3 = null;
+      var his_allowedcode3 = null;
+
+      if(user_by_his_allowedemails){
+        
       if( typeof user_by_his_allowedemails.users.user2 !== 'undefined' ){
         var his_allowedemails2 = user_by_his_allowedemails.users.user2.email;
         var his_allowedcode2 = user_by_his_allowedemails.users.user2.pass;
@@ -533,6 +705,7 @@ app.post('/allowedemails',async (req, res) => {
         var his_allowedemails2 = null;
         var his_allowedcode2 = null;
       }
+    
 
       if(typeof user_by_his_allowedemails.users.user3 !== 'undefined'){
         var his_allowedemails3 = user_by_his_allowedemails.users.user3.email;
@@ -543,6 +716,7 @@ app.post('/allowedemails',async (req, res) => {
         var his_allowedcode3 = null;
 
       }
+    }
       //var his_allowedemails3 = user_by_his_allowedemails.users.user3.email;
       res.status(200).json({"user2":{"useremail": his_allowedemails2,"code":his_allowedcode2},  "user3":{"useremail":his_allowedemails3,"code":his_allowedcode3}   } );
     } else {
@@ -578,7 +752,7 @@ app.post('/add',async (req, res) => {
       if(!isValidEmail(email_owner) || !isValidEmail(new_email_added)){
         console.log('valie email failed owner or new')
         res.status(400).send('Authentication failed !!!.');
-      } else if(decoded_add.idusername_from_generated !== username_owner){
+      } else if(Object.values(decoded_add)[0] !== username_owner){
         console.log('decoded verification failed')
 
         res.status(401).send('Authentication incorrect !!!.');
@@ -620,7 +794,7 @@ app.post('/removedemail',async (req, res) => {
   if(myCookie_token_in_removedemail!==undefined && myCookie_token_in_removedemail!==null){
     const decoded_in_removedemail = jwt.verify(myCookie_token_in_removedemail, secretKey);
 
-    if (decoded_in_removedemail.idusername_from_generated == idusername && idusername!==null) {
+    if (Object.values(decoded_in_removedemail)[0] == idusername && idusername!==null) {
       console.log('we are in the 200 request in removedemail')
      try{
       const foundDoc = await MyModelMongoose.findOne({
@@ -687,6 +861,28 @@ app.get('/tab/:ownroute', function(req, res) {
    res.send('own route : ' + req.params.ownroute);
    //http://localhost:5000/things/nadjib/45
 });
+
+app.get('/getdata',async function(req,res){
+  try {
+    
+   console.log('we are in getdata :')
+  console.log('*******************************---------------------------------************');
+  console.log('*******************************---------------------------------************')
+  console.log('*******************************---------------------------------************')
+  console.log('*******************************---------------------------------************')
+  console.log('*******************************---------------------------------************')
+
+  var user_by_organisme = await MyModelMongoose.findOne({"hisownroute":"lvpa6jcj9gfjcerjeihhzsoe0"}).lean();
+  //console.log(user_by_organisme)
+
+  //var userfind = await MyModelMongoose.find({});
+  //console.log(userfind[0])
+  res.status(200).json({'data00':user_by_organisme.dataa});
+} catch (error) {
+ console.error('errorr : ' + error )   
+}
+
+})
 
 //Other routes here
 
