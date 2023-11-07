@@ -222,14 +222,16 @@ app.post('/register',authenticate, (req, res) => {
   console.log('req.body :')
 try {
   
-  const receivedData = JSON.parse(req.body.jsonData_whenclosed); //JSON.parse(req.body) ;!!!!!
+  const receivedData = JSON.parse(req.body.jsonData_whenclosed); //JSON.parse(req.body) ;!!!!!!!::
   const receivedUsername = req.body.idusername00;
   console.log('receivedUsername')
   console.log(receivedUsername)
 
   console.log('httponly cookie :')
   const myCookie_token = req.cookies['jwtTokentableur'];  // Replace 'myCookieName' with your actual cookie name
-  
+  console.log(myCookie_token)
+  console.log('receivedData')
+  console.log(receivedData)
   const decoded = jwt.verify(myCookie_token, secretKey);
   console.log('decoded :');
   console.log(decoded);
@@ -243,7 +245,10 @@ try {
 
   // console.log('ddatafct_verify : ')
   // console.log(ddatafct_verify(last_row_after_header,receivedData));
-
+  console.log('datafctverify')
+  ddatafct_verify(last_row_after_header,receivedData);
+  console.log('after datafctverify');
+  //console.log(testa)
   if(!ddatafct_verify(last_row_after_header,receivedData)){
     console.log('we return false')
     //res.status(500).json({ message: error.message });
@@ -261,10 +266,10 @@ try {
   var returningfct = await updateByUsername(Object.values(decoded)[0], receivedData2);
   if(returningfct){
   // Respond with a success message
-  console.log('beacon success')
+  console.log('beacon or somethingelse success')
   res.status(200).send('Data received successfully.');
 } else {
-  console.log('beacon failed')
+  console.log('beacon or somethingelse or somethingelse failed')
   res.status(400).send('Data received failed.');
 
 }
@@ -679,7 +684,7 @@ app.post('/allowedemails',async (req, res) => {
   console.log('we are in allowedemails  ::: ')
 
   const {idusername} = req.body;
-  const myCookie_token_in_allowedemails = req.cookies['jwtTokentableur'];  /// Replace 'myCookieName' with your actual cookie name::!!!!
+  const myCookie_token_in_allowedemails = req.cookies['jwtTokentableur'];  ///  Replace 'myCookieName' with your actual cookie name::!!!!
 
   if(myCookie_token_in_allowedemails!==undefined && myCookie_token_in_allowedemails!==null){
     const decoded_in_allowedemails = jwt.verify(myCookie_token_in_allowedemails, secretKey);
@@ -862,7 +867,7 @@ app.get('/tab/:ownroute', function(req, res) {
    //http://localhost:5000/things/nadjib/45
 });
 
-app.get('/getdata',async function(req,res){
+app.get('/getdata',async (req,res)=>{
   try {
     
    console.log('we are in getdata :')
@@ -872,11 +877,12 @@ app.get('/getdata',async function(req,res){
   console.log('*******************************---------------------------------************')
   console.log('*******************************---------------------------------************')
 
-  var user_by_organisme = await MyModelMongoose.findOne({"hisownroute":"lvpa6jcj9gfjcerjeihhzsoe0"}).lean();
-  //console.log(user_by_organisme)
+  var user_by_organisme = await MyModelMongoose.findOne({"hisownroute":"u9khl67j0k5lntqwp2arkfogv"}).lean();
+  console.log(user_by_organisme)
 
   //var userfind = await MyModelMongoose.find({});
   //console.log(userfind[0])
+  console.log('we will return status 200 in getdata ')
   res.status(200).json({'data00':user_by_organisme.dataa});
 } catch (error) {
  console.error('errorr : ' + error )   
