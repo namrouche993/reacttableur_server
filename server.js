@@ -10,6 +10,15 @@ const bcrypt = require('bcryptjs');
 const secretKey = '425cac990d726cd10669e2957c6f2ebef6e2b1f4f61dffc011c7327e73031620'; // Replace with your actual secret key
 const crypto = require('crypto');
 
+const http = require('http');
+
+//const socketIO = require('socket.io');
+const {Server} = require('socket.io');
+const cookie = require('cookie');
+
+
+
+
 //const nodefetch = require('node-fetch'); //nodefetch
 
 
@@ -32,6 +41,20 @@ app.use(express.json());
 app.use(cors({origin: 'http://localhost:3000',credentials: true}));  // Use the cors middleware!!!!!!
 app.use(bodyParser.json());
 app.use(cookieParser());
+
+const server = http.createServer(app);
+//const io = socketIO(server);
+
+const io = new Server(server,{
+  cookie:true,
+  cors:{
+    origin:'http://localhost:3000',
+    methods:["GET","POST"]
+  }  
+})
+
+
+
 
 //var things = require('./things.js');
 //const { sup , how }= require('./middle.js');
@@ -231,7 +254,7 @@ try {
   const myCookie_token = req.cookies['jwtTokentableur'];  // Replace 'myCookieName' with your actual cookie name
   console.log(myCookie_token)
   console.log('receivedData')
-  console.log(receivedData)
+  //console.log(receivedData)
   const decoded = jwt.verify(myCookie_token, secretKey);
   console.log('decoded :');
   console.log(decoded);
@@ -867,9 +890,26 @@ app.get('/tab/:ownroute', function(req, res) {
    //http://localhost:5000/things/nadjib/45
 });
 
-app.get('/getdata',async (req,res)=>{
+app.post('/getdata',async (req,res)=>{
+  console.log('getdata cond 00')
   try {
-    
+    console.log('getdata cond 1')
+    const {hisroute,idusername} = req.body;
+    var hisroute2 = hisroute.replace('tab/','');
+    const myCookie_token_in_getdata = req.cookies['jwtTokentableur'];  /// Replace 'myCookieName' with your actual cookie name::!!!!
+    console.log('myCookie_token_in_getdata : ')
+    console.log(myCookie_token_in_getdata)
+    console.log(hisroute)
+    console.log(idusername)
+    console.log(hisroute2)
+
+    if(myCookie_token_in_getdata!==undefined && myCookie_token_in_getdata!==null){
+      console.log('getdata cond 2')
+      const decoded_in_getdata = jwt.verify(myCookie_token_in_getdata, secretKey);
+  
+      if (Object.values(decoded_in_getdata)[0] == idusername && idusername!==null) {
+        console.log('getdata cond 3')
+
    console.log('we are in getdata :')
   console.log('*******************************---------------------------------************');
   console.log('*******************************---------------------------------************')
@@ -877,14 +917,30 @@ app.get('/getdata',async (req,res)=>{
   console.log('*******************************---------------------------------************')
   console.log('*******************************---------------------------------************')
 
-  var user_by_organisme = await MyModelMongoose.findOne({"hisownroute":"u9khl67j0k5lntqwp2arkfogv"}).lean();
-  console.log(user_by_organisme)
+  var user_by_organisme = await MyModelMongoose.findOne({"hisownroute":hisroute2}).lean();
+  //console.log(user_by_organisme)
 
   //var userfind = await MyModelMongoose.find({});
   //console.log(userfind[0])
   console.log('we will return status 200 in getdata ')
   res.status(200).json({'data00':user_by_organisme.dataa});
+      } else {
+        console.log('getdata cond 4')
+        res.status(401).json({
+          error:'Error',
+          message: 'Error'
+        }) 
+      }
+    } else {
+      console.log('getdata cond 5')
+
+      res.status(400).json({
+        error:'Error',
+        message: 'Error'
+      }) 
+    }
 } catch (error) {
+  console.log('getdata cond 6')
  console.error('errorr : ' + error )   
 }
 
@@ -903,11 +959,93 @@ app.get('*', function(req, res){   //   404 page
 });
 
 
+// //////////////////             SOCKET !
+
+// const wrap = middleware => (socket, next) => middleware(socket.request, {}, next)
+// io.use(wrap(cookieParser(process.env.COOKIE_SECRET)))
 
 
+const connectedUsers = new Set();
+console.log('connctedUsers :');
+console.log(connectedUsers);
+
+io.on('connection', (socket) => {
+  console.log('-------------- SOCKET ------------')
+  console.log('A user connected');
+  console.log(socket.id)
+  // Handle events from the client
+  
+  socket.on('user_connected', (msg) => {
+    console.log('message is : ' + msg)
+    
+
+    //connectedUsers.add(socket.id);
+    console.log('******************************************')
+    console.log(socket.handshake.query.username);
+    console.log('****')
+    console.log(socket.request.headers.cookie)
+
+    const cookies2_in_socket = cookie.parse(socket.request.headers.cookie || '');
+    const myCookie_token_in_socket = cookies2_in_socket['jwtTokentableur'];
+    const decoded_in_socket = jwt.verify(myCookie_token_in_socket, secretKey);
+
+    
+    if (Object.values(decoded_in_socket)[0] !== socket.handshake.query.username) {
+      console.log('Authentication error in socket ')
+      return 'Authentication error'
+    } else {
+      connectedUsers.add(socket.handshake.query.username)
+      socket.emit('list_userconncted',Array.from(connectedUsers))
+
+      //socket.broadcast.emit('list_userconncted',Array.from(connectedUsers));
+      //socket.broadcast.emit('received_userconncted_msg',true);
+      console.log('****************************************-------------------------')
+      console.log(connectedUsers)
+
+    }
+
+    
+    //const cookies = socket.request.headers.cookie;
+
+    console.log('connctedUsers in connecting :')
+    console.log(connectedUsers)
+    
 
 
-app.listen(5000,()=>{
-    console.log('server listend to the port 5000')
+    //io.emit('user_connected', msg); // Broadcast the message to all connected clients
+  });
+
+
+  // Handle disconnect event
+  socket.on('disconnect', () => {
+    console.log('User disconnected');
+    socket.broadcast.emit('received_userdisconnect');
+    //connectedUsers.delete(socket.id);
+    console.log('******************************************')
+    console.log('connctedUsers in disconnect :')
+    console.log(connectedUsers)
+
+    const cookies2_in_socket = cookie.parse(socket.request.headers.cookie || '');
+    const myCookie_token_in_socket = cookies2_in_socket['jwtTokentableur'];
+    const decoded_in_socket = jwt.verify(myCookie_token_in_socket, secretKey);
+
+    
+    if (Object.values(decoded_in_socket)[0] !== socket.handshake.query.username) {
+      console.log('Authentication error in socket ')
+      return 'Authentication error'
+    } else {
+      connectedUsers.delete(socket.handshake.query.username)
+      //socket.broadcast.emit('list_userconncted',Array.from(connectedUsers));
+      socket.emit('list_userconncted',Array.from(connectedUsers))
+      socket.broadcast.emit('received_userconncted_msg',false);
+    }
+
+  });
+});
+
+
+//app.listen(5000,()=>{
+server.listen(5000,()=>{
+  console.log('server listend to the port 5000')
 })
 
