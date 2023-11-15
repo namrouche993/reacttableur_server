@@ -922,12 +922,13 @@ app.post('/getdata',async (req,res)=>{
   console.log('*******************************---------------------------------************')
   console.log('*******************************---------------------------------************')
 
-  var user_by_organisme = await MyModelMongoose.findOne({"hisownroute":hisroute2}).lean();
+  var user_by_organisme = await MyModelMongoose.findOne({"hisownroute":hisroute2});
   //console.log(user_by_organisme)
 
   //var userfind = await MyModelMongoose.find({});
   //console.log(userfind[0])
   console.log('we will return status 200 in getdata ')
+  //console.log(user_by_organisme)
   res.status(200).json({'data00':user_by_organisme.dataa});
       } else {
         console.log('getdata cond 4')
@@ -945,6 +946,11 @@ app.post('/getdata',async (req,res)=>{
       }) 
     }
 } catch (error) {
+  
+  res.status(400).json({
+    error:'Error',
+    message: 'Error'
+  })
   console.log('getdata cond 6')
  console.error('errorr : ' + error )   
 }
@@ -985,7 +991,7 @@ io.on('connection', (socket) => {
     
 
     //connectedUsers.add(socket.id);
-    console.log('******************************************')
+    console.log('pppppppppppppp OOOOOOOOOOOOOOOOOO*****************')
     console.log(socket.handshake.query.username);
     console.log('****')
     console.log(socket.request.headers.cookie)
@@ -1003,11 +1009,11 @@ io.on('connection', (socket) => {
       return 'Authentication error'
     } else {
       connectedUsers.add(socket.handshake.query.username)
-      socket.emit('list_userconncted',Array.from(connectedUsers))
-
-      //socket.broadcast.emit('list_userconncted',Array.from(connectedUsers));
+      //socket.emit('list_userconncted',Array.from(connectedUsers))
+      socket.broadcast.emit('list_userconncted',Array.from(connectedUsers));
+      
       //socket.broadcast.emit('received_userconncted_msg',true);
-      console.log('****************************************-------------------------')
+      console.log('****************************************---------------------------')
       console.log(connectedUsers)
 
     }
@@ -1048,8 +1054,10 @@ io.on('connection', (socket) => {
       return 'Authentication error'
     } else {
       connectedUsers.delete(socket.handshake.query.username)
-      //socket.broadcast.emit('list_userconncted',Array.from(connectedUsers));
-      socket.emit('list_userconncted',Array.from(connectedUsers))
+      //socket.emit('list_userconncted',Array.from(connectedUsers));
+      socket.broadcast.emit('list_userconncted',Array.from(connectedUsers))
+      
+      
       socket.broadcast.emit('received_userconncted_msg',false);
     }
 
