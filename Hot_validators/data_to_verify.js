@@ -1,5 +1,7 @@
-  const ValidatorFormats = require('./ValidatorFormats.js');
-  
+
+const ValidatorFormats = require('./ValidatorFormats.js');
+
+
   var retreived_data= [];
   retreived_data.push(  
   ['',"République Algérienne Démocratique et Populaire",'','','','','','','','','','','','','',   ''],
@@ -180,4 +182,18 @@ function ddatafct_verify(last_row_after_header,retreived_data){
 
 //var data_to_verify =  ddatafct_verify(last_row_after_header);
 ////(data_to_verify);
-module.exports = {ddatafct_verify , retreived_data};
+
+/////////////// 
+
+function ddatafct00(last_row_after_header){ 
+  var ddata00= retreived_data;
+
+for(let i=0 ; i<=last_row_after_header ; i++) {
+let zzrow=['','','','','','','','','','','','','','','','','',   ''] // editable
+
+ddata00.push(zzrow);
+}
+return ddata00
+}
+
+module.exports = {ddatafct_verify , retreived_data,ddatafct00,last_row_after_header};

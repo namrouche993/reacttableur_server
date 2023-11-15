@@ -81,7 +81,7 @@ var mongooseRouter = require('./mongooseRouter.js')
 
 app.use('/mongooseRouter', mongooseRouter);
 const last_row_after_header = 15; // editable 
-const {ddatafct_verify , retreived_data} = require('./Hot_validators/data_to_verify.js')
+const {ddatafct_verify , retreived_data,ddatafct00} = require('./Hot_validators/data_to_verify.js')
 
 
 
@@ -316,7 +316,7 @@ app.post('/tab/ownenter', async (req, res) => {
   const {ownroute} = req.body;
   //console.log(ownroute)
   var user_by_route = await MyModelMongoose.findOne({"hisownroute":ownroute});
-  var userr = await MyModelMongoose.findOne({"phoneNumber_owner":"077775566"})
+  //var userr = await MyModelMongoose.findOne({"phoneNumber_owner":"077775566"})
   //console.log(userr.dataa)
   console.log('userr')
   console.log('user_by_route')
@@ -375,7 +375,7 @@ console.log('we will enter in try')
 app.post('/tab/enter', async (req, res) => {
   //const {act_data,idusername} = req.body;;
   
-  //const {idusername,data_now} = req.body;
+  //const {idusername,data_now} = req.body;!!
   const {idusername} = req.body;
 
   console.log('we are in tab/enter : ')
@@ -444,12 +444,12 @@ app.post('/tab/login', async (req, res) => {
     console.log(dataRecaptcha)
 
     if (dataRecaptcha.success) {
-      //res.status(200).json({ success: true, message: 'reCAPTCHA verification successful' });
+      //res.status(200).json({ success: true, message: 'reCAPTCHA verification successful' });!!
 
       const { organisme, region,email,phoneNumber } = req.body;
       var idusername_from_generated = generateRandomString(14,false);
       console.log(idusername_from_generated)
-      var dataa_inital = retreived_data;
+      var dataa_inital = ddatafct00(last_row_after_header)//retreived_data;
     
       const organisme_to_check = organisme_data.find(u => u.val === organisme);
       const region_to_check = region_data.find(u => u.matriculeregion === region);
@@ -895,13 +895,18 @@ app.post('/getdata',async (req,res)=>{
   try {
     console.log('getdata cond 1')
     const {hisroute,idusername} = req.body;
-    var hisroute2 = hisroute.replace('tab/','');
-    const myCookie_token_in_getdata = req.cookies['jwtTokentableur'];  /// Replace 'myCookieName' with your actual cookie name::!!!!
+    console.log('hisroute :')
+    console.log(hisroute)
+    console.log(idusername)
+    var hisroute2 = hisroute.toString().replace('/tab/','');
+    const myCookie_token_in_getdata = req.cookies['jwtTokentableur'];  ////!! Replace 'myCookieName' with your actual cookie name::!!!!
     console.log('myCookie_token_in_getdata : ')
     console.log(myCookie_token_in_getdata)
     console.log(hisroute)
     console.log(idusername)
     console.log(hisroute2)
+
+
 
     if(myCookie_token_in_getdata!==undefined && myCookie_token_in_getdata!==null){
       console.log('getdata cond 2')
@@ -973,7 +978,7 @@ io.on('connection', (socket) => {
   console.log('-------------- SOCKET ------------')
   console.log('A user connected');
   console.log(socket.id)
-  // Handle events from the client
+  // Handle events from the client !!!!!!
   
   socket.on('user_connected', (msg) => {
     console.log('message is : ' + msg)
@@ -987,6 +992,9 @@ io.on('connection', (socket) => {
 
     const cookies2_in_socket = cookie.parse(socket.request.headers.cookie || '');
     const myCookie_token_in_socket = cookies2_in_socket['jwtTokentableur'];
+    if(!myCookie_token_in_socket){
+      return 'Authentication error'
+    }
     const decoded_in_socket = jwt.verify(myCookie_token_in_socket, secretKey);
 
     
@@ -1027,6 +1035,11 @@ io.on('connection', (socket) => {
 
     const cookies2_in_socket = cookie.parse(socket.request.headers.cookie || '');
     const myCookie_token_in_socket = cookies2_in_socket['jwtTokentableur'];
+
+    if(!myCookie_token_in_socket){
+      return 'Authentication error'
+    }
+
     const decoded_in_socket = jwt.verify(myCookie_token_in_socket, secretKey);
 
     
