@@ -8,6 +8,7 @@ const userSchema_owner = new Schema({
   pass: {required:true,type:Number}, // maybe editable when changing pass to string and not numbers
   token: {required:true,type:String},
   owner: {required:true,type:Boolean},
+  hisownroutetoken:{required:true,type:String}
 });
 
 const userSchema_teammate = new Schema({
@@ -16,6 +17,8 @@ const userSchema_teammate = new Schema({
   pass: {required:false,type:Number}, // maybe editable when changing pass to string and not numbers
   token: {required:false,type:String},
   owner: {required:false,type:Boolean},
+  hisownroutetoken:{required:false,type:String}
+
 });
 
 const MySchema = new Schema({

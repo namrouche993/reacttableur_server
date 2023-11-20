@@ -35,6 +35,7 @@ const requestIp = require('request-ip');
 //const generateRandomString = require('./Tools/Randst_server');
 
 const {isValidEmail,isValidPhoneNumber} = require('./Tools/IsValid');
+const {getCookieValue} = require('./Tools/getCookieValue.js');
 const app = express()
 
 app.use(express.json());
@@ -81,7 +82,8 @@ var mongooseRouter = require('./mongooseRouter.js')
 
 app.use('/mongooseRouter', mongooseRouter);
 const last_row_after_header = 15; // editable 
-const {ddatafct_verify , retreived_data,ddatafct00} = require('./Hot_validators/data_to_verify.js')
+const {ddatafct_verify , retreived_data,ddatafct00} = require('./Hot_validators/data_to_verify.js');
+const { Console } = require('console');
 
 
 
@@ -146,6 +148,7 @@ const update_to_add_user = async (email_owner, new_email_of_user,myCookie_token_
    // console.log(generateRandomString(6).toLocaleUpperCase().toString())
 
     try {
+      
       const filter = {
         "users.user1.email": email_owner,
         "users.user1.token":myCookie_token_in_add
@@ -155,6 +158,12 @@ const update_to_add_user = async (email_owner, new_email_of_user,myCookie_token_
       const document = await MyModelMongoose.findOne(filter);
     
       if (document && document.users) {
+    
+        var hisownroutewillbesigned = document.hisownroute;
+        var tokenownroute = jwt.sign({hisownroutewillbesigned},secretKey);
+        console.log('tokenownroute in accessfromurlcp verifiying pass ')
+        console.log(tokenownroute)
+        
         if(!document.users.user2 && !document.users.user3){
           var idusername_from_generated = generateRandomString(14,false);
           var codepass = crypto.randomInt(10000000, 99999999);
@@ -167,6 +176,7 @@ const update_to_add_user = async (email_owner, new_email_of_user,myCookie_token_
             "users.user2.token": jwt.sign({ idusername_from_generated }, secretKey),
             "users.user2.owner": false,
             "users.user2.pass": codepass,
+            "users.user2.hisownroutetoken":tokenownroute
             // Add more fields or update operations as needed
           }
         }
@@ -184,6 +194,8 @@ const update_to_add_user = async (email_owner, new_email_of_user,myCookie_token_
             "users.user2.token": jwt.sign({ idusername_from_generated }, secretKey),
             "users.user2.owner": false,
             "users.user2.pass": codepass,
+            "users.user2.hisownroutetoken":tokenownroute
+
             // Add more fields or update operations as needed
           }
         }
@@ -198,6 +210,8 @@ const update_to_add_user = async (email_owner, new_email_of_user,myCookie_token_
             "users.user3.token": jwt.sign({ idusername_from_generated }, secretKey),
             "users.user3.owner": false,
             "users.user3.pass": codepass,
+            "users.user3.hisownroutetoken":tokenownroute
+
             // Add more fields or update operations as needed
           }
         };
@@ -479,6 +493,11 @@ app.post('/tab/login', async (req, res) => {
       console.log('hisownroute:')
       console.log(hisownroute);
 
+      var hisownroutewillbesigned = hisownroute;
+      const tokenownroute = jwt.sign({hisownroutewillbesigned},secretKey)
+      console.log(tokenownroute)
+
+
         const newRecord = new MyModelMongoose({
           "users.user1.idusername":idusername_from_generated,
           "dataa":dataa_inital,
@@ -490,7 +509,8 @@ app.post('/tab/login', async (req, res) => {
           "hisownroute":hisownroute,
           "users.user1.token":token,
           "users.user1.owner":true,
-          "users.user1.pass":generateRandomString(6,true) // maybe editable when changing string to numbers
+          "users.user1.pass":generateRandomString(6,true), // maybe editable when changing string to numbers
+          "users.user1.hisownroutetoken":tokenownroute
         });
         console.log('newRecord before:')
         console.log(newRecord)
@@ -507,6 +527,8 @@ app.post('/tab/login', async (req, res) => {
         console.log(newRecord)
     
         res.cookie('jwtTokentableur', token, { httpOnly: true,  maxAge: 8640000000 });
+        res.cookie('jwtTokentableurhisownroute', tokenownroute, { httpOnly: true,  maxAge: 8640000000 });
+        
         res.json({"idusername_to_client_side":idusername_from_generated,"hisownroute":hisownroute});
         console.log('after resjson');
           
@@ -540,23 +562,26 @@ app.post('/hello', function(req, res){
 
 app.post('/acc/accessfromurlem',async (req, res) => {
     console.log('we are in acc/accessfromurlem  ::: ')
-    const {email} = req.body;
+    const {email,currentrouteofurl} = req.body;
     console.log(email)
+    console.log(currentrouteofurl)
+    
     if(!isValidEmail(email)){
       res.status(400).send('Authentication failed !!!.');
     } else {
+
     var email_in_db = await MyModelMongoose.findOne({
       //"email":email
-      $or: [
+      "hisownroute":currentrouteofurl
+     /* $or: [
         { "users.user1.email": email },
         { "users.user2.email": email },
         { "users.user3.email": email }
       ]
-    
+      */
     });
     console.log('email_in_db')
-    //console.log(email_in_db);
-
+    console.log(email_in_db);
       
   if (email_in_db) {
     console.log('we are in emailindb')
@@ -577,7 +602,6 @@ app.post('/acc/accessfromurlem',async (req, res) => {
           console.log('Email found in users.user2.email');
           res.status(200).json({'idusername_to_client_side':email_in_db.users.user2.idusername,
           'email':email_in_db.users.user2.email});
-
         }
         else if(email_in_db.users.user3){
           console.log('we are in emailindb users.user3')
@@ -589,11 +613,36 @@ app.post('/acc/accessfromurlem',async (req, res) => {
             console.log('Email found in users.user3.email');
           } else {
             console.log('findemailinFields will be null')
-            var findemailinFields =null      
+            var findemailinFields =null
+            console.log('not found in any of them, user2 and user3 exist')
+            res.status(401).send('Authorization failed !!!.');        
           }
+        } else {
+          console.log('not found in any of them, user2 exist and user3 no')
+          res.status(401).send('Authorization failed !!!.');        
         }
       }
-    }
+      else if(email_in_db.users.user3){
+        if (email_in_db.users.user3.email === email) {
+          var findemailinFields = email_in_db.users.user3;
+          res.status(200).json({'idusername_to_client_side':email_in_db.users.user3.idusername,
+          'email':email_in_db.users.user3.email});
+
+          console.log('Email found in users.user3.email');
+        } else {
+          console.log('findemailinFields will be null')
+          var findemailinFields =null
+          console.log('not found in any of them, user2 and user3 exist')
+          res.status(401).send('Authorization failed !!!.');        
+        }
+      } else {
+        console.log('not found in any of them, user2 doesnt exist and user3 exist')
+        res.status(401).send('Authorization failed !!!.');        
+      }
+            } else {
+              console.log('not found in any of them, user2 doesnt exist and user3 exist')
+              res.status(401).send('Authorization failed !!!.');              
+            }
   } else {
     console.log('!email_in_db')
     res.status(401).send('Authorization failed !!!.');
@@ -605,7 +654,7 @@ app.post('/acc/accessfromurlem',async (req, res) => {
 
 app.post('/acc/accessfromurlcp',async (req, res) => {
   console.log('we are in acc/accessfromurlcp  ::: ')
-  const {email,pinCode,recaptchaTokenAccess} = req.body;
+  const {email,pinCode,recaptchaTokenAccess,currentrouteofurl} = req.body;
   const pinCodenotArray = pinCode.join('');
   console.log(email)
   if(!isValidEmail(email)){
@@ -622,12 +671,14 @@ app.post('/acc/accessfromurlcp',async (req, res) => {
         
   var email_in_db = await MyModelMongoose.findOne({
     //"email":email
-    $or: [
+    "hisownroute":currentrouteofurl
+
+/*    $or: [
       { "users.user1.email": email },
       { "users.user2.email": email },
       { "users.user3.email": email }
     ]
-  
+*/
   });
   console.log('email :')
   console.log(email);
@@ -657,8 +708,27 @@ app.post('/acc/accessfromurlcp',async (req, res) => {
             var findpassinFields =null      
           }
         }
+      } else if(email_in_db.users.user3){
+        console.log('we are in emailindb users.user3')
+        if (email_in_db.users.user3.email === email) {
+          var findpassinFields = email_in_db.users.user3;
+          console.log('Email found in users.user3.email');
+        } else {
+          console.log('findpassinFields will be null')
+          var findpassinFields =null      
+        }
+      } else {
+        console.log('findpassinFields will be null')
+        var findpassinFields =null      
       }
+
+    } else {
+      console.log('findpassinFields will be null')
+      var findpassinFields =null      
     }
+  } else {
+    console.log('findpassinFields will be null')
+    var findpassinFields =null      
   }
 
   console.log('we are before condition of !email_in_db');
@@ -675,9 +745,11 @@ app.post('/acc/accessfromurlcp',async (req, res) => {
     res.status(401).send('Authorization failed !!!.');
   } else if (findpassinFields==null) {
     res.status(401).send('Authorization failed !!!!!!.');
-  } else if(findpassinFields.pass==pinCodenotArray) { // editable later
+  } else if(findpassinFields.pass==pinCodenotArray) { // editable later !
     console.log('we are in email existed !!')
+
     res.cookie('jwtTokentableur', findpassinFields.token, { httpOnly: true,  maxAge: 8640000000 });
+    res.cookie('jwtTokentableurhisownroute', findpassinFields.hisownroutetoken, { httpOnly: true,  maxAge: 8640000000 });
 
     res.status(200).json({
     'idusername_to_client_side':findpassinFields.idusername,
@@ -686,7 +758,8 @@ app.post('/acc/accessfromurlcp',async (req, res) => {
     'organisme':email_in_db.organisme,
     'region':email_in_db.region,
     'dataa':email_in_db.dataa,
-    'hisownroute':email_in_db.hisownroute
+    'hisownroute':email_in_db.hisownroute,
+
     //,'token_aftersuccesspass':findpassinFields.token
   });
   } else {
@@ -969,99 +1042,163 @@ app.get('*', function(req, res){   //   404 page
   res.send('Sorry, this is an invalid URL.');
 });
 
+app.post('/clearcookie', (req, res) => {
+  console.log('clear cookie')
+  // Clearing a cookie by setting its expiration date to a past date!!!
+  res.clearCookie('jwtTokentableurhisownroute');
+  res.clearCookie('jwtTokentableur');
+
+ // res.cookie('jwtTokentableurhisownroute', null, { httpOnly: true,  maxAge: 8640000000 });
+ // res.cookie('jwtTokentableur', null, { httpOnly: true,  maxAge: 8640000000 });
+  res.status(200).send('Cookie cleared');
+
+});
+
 
 // //////////////////             SOCKET !
 
-// const wrap = middleware => (socket, next) => middleware(socket.request, {}, next)
-// io.use(wrap(cookieParser(process.env.COOKIE_SECRET)))
+// io.of('/zqoucqnalzkhvxba2lc5zat4w').on('connection',(socket)=>{
+//   console.log('aaaaaaaaaaaaaaaaaaa')
+// })
+
+io.use((socket, next) => {
+  // Perform authentication here, e.g., validate a token
+  //const token = socket.handshake.auth.token;
+  try {
+  console.log('io.use $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ : ')
+  var getjwtcookiehisownroute = getCookieValue(socket.request.headers.cookie,'jwtTokentableurhisownroute');
+  console.log('****')
+  console.log(getjwtcookiehisownroute)
+  console.log('***')
+  console.log(socket.request.headers.cookie)  
+
+  const decoded_jwtcookiehisownroute = jwt.verify(getjwtcookiehisownroute, secretKey);
+  console.log('decoded_jwtcookiehisownroute :');
+  console.log(decoded_jwtcookiehisownroute);
+  console.log('testverif :')
+  //var testverif = jwt.verify(, secretKey);
+  //console.log(testverif)
+  console.log('socket.handskhake query namespace0 :')
+  console.log(socket.handshake.query.namespace0)
+  //console.log()
+  //console.log(receivedUsername)
+
+  if (Object.values(decoded_jwtcookiehisownroute)[0] !== socket.handshake.query.namespace0) {
+     console.log('we are inside decoded_jwtcookiehisownroute.hisownroute !== namespace0')
+       //return next(new Error('Authentication failed'));
+
+     //return res.status(403).json({ message: 'Forbidden' });
+   } else {
+    console.log('authorization succes in io.use')
+    return next();
+   } 
+} catch (error) {
+    console.log('we are inside error in io.use')
+}
 
 
-const connectedUsers = new Set();
-console.log('connctedUsers :');
-console.log(connectedUsers);
+  // Assuming you have a function to verify the token
+  
+  // if (isValidToken(token)) {
+  //   return next();
+  // }
+
+  // If authentication fails, reject the connection
+  //return next(new Error('Authentication failed'));
+});
+
+const usersList = {};
+const updatedUsersList = {};
 
 io.on('connection', (socket) => {
-  console.log('-------------- SOCKET ------------')
-  console.log('A user connected');
-  console.log(socket.id)
-  // Handle events from the client !!!!!!
+   console.log('ddddddddddddddddddddddddddddddddddddd')
+
+  var namespace = socket.handshake.query.namespace0;
+  console.log(namespace)
+  if (!namespace){
+    console.log('namesopace is undefiened!!!')
+    return 'namespace is undefined!!!!!!!!!!!'
+  }
+
   
-  socket.on('user_connected', (msg) => {
-    console.log('message is : ' + msg)
-    
+  usersList[namespace]=[];
+  updatedUsersList[namespace]=[];
 
-    //connectedUsers.add(socket.id);
-    console.log('pppppppppppppp OOOOOOOOOOOOOOOOOO*****************')
-    console.log(socket.handshake.query.username);
-    console.log('****')
-    console.log(socket.request.headers.cookie)
+  console.log(namespace)
+  var namespace_without_tab = namespace.toString().replace('tab/','');
+ 
+    console.log(io.engine.clientsCount)
+    socket.join(namespace);
 
-    const cookies2_in_socket = cookie.parse(socket.request.headers.cookie || '');
-    const myCookie_token_in_socket = cookies2_in_socket['jwtTokentableur'];
-    if(!myCookie_token_in_socket){
-      return 'Authentication error'
-    }
-    const decoded_in_socket = jwt.verify(myCookie_token_in_socket, secretKey);
+  //  socket.on('joinRoom', (room) => {
+  //    socket.join(room);
+  //    console.log(`User joined room: ${room}`);
+//    });
 
-    
-    if (Object.values(decoded_in_socket)[0] !== socket.handshake.query.username) {
-      console.log('Authentication error in socket ')
-      return 'Authentication error'
-    } else {
-      connectedUsers.add(socket.handshake.query.username)
-      //socket.emit('list_userconncted',Array.from(connectedUsers))
-      socket.broadcast.emit('list_userconncted',Array.from(connectedUsers));
+    //console.log('socket after joining the room : ')
+    //console.log(socket.rooms)
+
+
+
+    const socketsInRoom = io.of(`/${namespace}`).sockets;
+    console.log('socketsInRoom')
+    console.log(socketsInRoom)
+
+    console.log(io.sockets.adapter.rooms);
+    console.log(io.sockets.adapter.rooms.get(namespace));
+
+    const socketsInTargetRoom = io.sockets.adapter.rooms.get(namespace);
+
+if (socketsInTargetRoom) {
+  // Iterate over the socket IDs in the target room
+  socketsInTargetRoom.forEach((socketId) => {
+    console.log('inside ForEACHHHHH :')
+    console.log(socketId)
+    const socket = io.sockets.sockets.get(socketId);
+    if (socket) {
+      console.log('**********************************')
+      console.log(`email: ${socket.handshake.query.email}`);
+      usersList[namespace].push(socket.handshake.query.email)
       
-      //socket.broadcast.emit('received_userconncted_msg',true);
-      console.log('****************************************---------------------------')
-      console.log(connectedUsers)
-
+      // Add email to your usersList arrayf
     }
-
-    
-    //const cookies = socket.request.headers.cookie;
-
-    console.log('connctedUsers in connecting :')
-    console.log(connectedUsers)
-    
-
-
-    //io.emit('user_connected', msg); // Broadcast the message to all connected clients
   });
+} else {
+  console.log(`Room ${namespace} not found!!`);
+}
 
 
-  // Handle disconnect event
-  socket.on('disconnect', () => {
-    console.log('User disconnected');
-    socket.broadcast.emit('received_userdisconnect');
-    //connectedUsers.delete(socket.id);
-    console.log('******************************************')
-    console.log('connctedUsers in disconnect :')
-    console.log(connectedUsers)
+  console.log('GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGaaGMMMMMMMaMMMMMMMMMMMMMMsMMMpmmpMmmMMMMsMMMM')
+    
+  const username_from_query = socket.handshake.query.username;
+  const email_from_query = socket.handshake.query.email;
+  
 
-    const cookies2_in_socket = cookie.parse(socket.request.headers.cookie || '');
-    const myCookie_token_in_socket = cookies2_in_socket['jwtTokentableur'];
-
-    if(!myCookie_token_in_socket){
-      return 'Authentication error'
-    }
-
-    const decoded_in_socket = jwt.verify(myCookie_token_in_socket, secretKey);
+  io.to(namespace).emit('listingusers',usersList[namespace])
+      
+    console.log(username_from_query)
+    console.log(email_from_query)
+    console.log(usersList)
+    console.log(usersList[namespace])
 
     
-    if (Object.values(decoded_in_socket)[0] !== socket.handshake.query.username) {
-      console.log('Authentication error in socket ')
-      return 'Authentication error'
-    } else {
-      connectedUsers.delete(socket.handshake.query.username)
-      //socket.emit('list_userconncted',Array.from(connectedUsers));
-      socket.broadcast.emit('list_userconncted',Array.from(connectedUsers))
-      
-      
-      socket.broadcast.emit('received_userconncted_msg',false);
-    }
+    socket.on('subscribeToListingUsers', () => {
+      // Send the current user list to the newly reconnected user!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      socket.join(namespace);
+      io.to(namespace).emit('listingusers', usersList[namespace]);
+    });
+  
+  
+    socket.on('disconnect', () => {
+      updatedUsersList.namespace = usersList[namespace].filter(user => user !== email_from_query);
+      io.to(namespace).emit('listingusers',updatedUsersList[namespace]);
+      console.log('User disconnected');
+  
+    });
 
-  });
+  
+
+
 });
 
 
