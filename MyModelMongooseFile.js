@@ -7,7 +7,8 @@ const userSchema_owner = new Schema({
   email: {required:true,type:String},
   pass: {required:true,type:Number}, // maybe editable when changing pass to string and not numbers
   token: {required:true,type:String},
-  owner: {required:true,type:Boolean},
+  //owner: {required:true,type:Boolean},
+  role : {required:true,type:String,default:'Owner',immutable:true},
   hisownroutetoken:{required:true,type:String}
 });
 
@@ -16,7 +17,8 @@ const userSchema_teammate = new Schema({
   email: {required:false,type:String},
   pass: {required:false,type:Number}, // maybe editable when changing pass to string and not numbers
   token: {required:false,type:String},
-  owner: {required:false,type:Boolean},
+  //owner: {required:false,type:Boolean},
+  role : {required:false,type:String,   enum:["Admin","Writer","Viewer"]},
   hisownroutetoken:{required:false,type:String}
 
 });

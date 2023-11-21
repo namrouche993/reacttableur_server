@@ -142,7 +142,7 @@ const updateByUsername = async (username, newData) => {
   }
 };
 
-const update_to_add_user = async (email_owner, new_email_of_user,myCookie_token_in_add) => {
+const update_to_add_user = async (email_owner, new_email_of_user,role_new_user,myCookie_token_in_add) => {
     console.log('essai pass returning value :')
     console.log('*****************------------------------ ! 00')
    // console.log(generateRandomString(6).toLocaleUpperCase().toString())
@@ -174,7 +174,8 @@ const update_to_add_user = async (email_owner, new_email_of_user,myCookie_token_
             "users.user2.idusername": idusername_from_generated,
             "users.user2.email": new_email_of_user,
             "users.user2.token": jwt.sign({ idusername_from_generated }, secretKey),
-            "users.user2.owner": false,
+            //"users.user2.owner": false,
+            "users.user2.role":role_new_user,
             "users.user2.pass": codepass,
             "users.user2.hisownroutetoken":tokenownroute
             // Add more fields or update operations as needed
@@ -192,7 +193,8 @@ const update_to_add_user = async (email_owner, new_email_of_user,myCookie_token_
             "users.user2.idusername": idusername_from_generated,
             "users.user2.email": new_email_of_user,
             "users.user2.token": jwt.sign({ idusername_from_generated }, secretKey),
-            "users.user2.owner": false,
+            //"users.user2.owner": false,
+            "users.user2.role":role_new_user,
             "users.user2.pass": codepass,
             "users.user2.hisownroutetoken":tokenownroute
 
@@ -208,7 +210,8 @@ const update_to_add_user = async (email_owner, new_email_of_user,myCookie_token_
             "users.user3.idusername": idusername_from_generated,
             "users.user3.email": new_email_of_user,
             "users.user3.token": jwt.sign({ idusername_from_generated }, secretKey),
-            "users.user3.owner": false,
+            //"users.user3.owner": false,
+            "users.user3.role":role_new_user,
             "users.user3.pass": codepass,
             "users.user3.hisownroutetoken":tokenownroute
 
@@ -508,7 +511,8 @@ app.post('/tab/login', async (req, res) => {
           "phoneNumber_owner":phoneNumber,
           "hisownroute":hisownroute,
           "users.user1.token":token,
-          "users.user1.owner":true,
+          //"users.user1.owner":true,
+          "users.user1.role":"Owner",
           "users.user1.pass":generateRandomString(6,true), // maybe editable when changing string to numbers
           "users.user1.hisownroutetoken":tokenownroute
         });
@@ -759,6 +763,7 @@ app.post('/acc/accessfromurlcp',async (req, res) => {
     'region':email_in_db.region,
     'dataa':email_in_db.dataa,
     'hisownroute':email_in_db.hisownroute,
+    'role':findpassinFields.role
 
     //,'token_aftersuccesspass':findpassinFields.token
   });
@@ -801,25 +806,29 @@ app.post('/allowedemails',async (req, res) => {
         
       if( typeof user_by_his_allowedemails.users.user2 !== 'undefined' ){
         var his_allowedemails2 = user_by_his_allowedemails.users.user2.email;
+        var his_allowedrole2 = user_by_his_allowedemails.users.user2.role;
         var his_allowedcode2 = user_by_his_allowedemails.users.user2.pass;
       } else {
         var his_allowedemails2 = null;
+        var his_allowedrole2 = null;
         var his_allowedcode2 = null;
       }
     
 
       if(typeof user_by_his_allowedemails.users.user3 !== 'undefined'){
         var his_allowedemails3 = user_by_his_allowedemails.users.user3.email;
+        var his_allowedrole3 = user_by_his_allowedemails.users.user3.role;
         var his_allowedcode3 = user_by_his_allowedemails.users.user3.pass;
 
       } else {
         var his_allowedemails3 = null;
+        var his_allowedrole3 = null;
         var his_allowedcode3 = null;
 
       }
     }
       //var his_allowedemails3 = user_by_his_allowedemails.users.user3.email;
-      res.status(200).json({"user2":{"useremail": his_allowedemails2,"code":his_allowedcode2},  "user3":{"useremail":his_allowedemails3,"code":his_allowedcode3}   } );
+      res.status(200).json({"user2":{"useremail": his_allowedemails2,"role":his_allowedrole2,"code":his_allowedcode2},  "user3":{"useremail":his_allowedemails3,"role":his_allowedrole3,"code":his_allowedcode3}   } );
     } else {
       res.status(401).send('Authorization failed !!!.');
     }
@@ -832,9 +841,10 @@ app.post('/allowedemails',async (req, res) => {
 
 app.post('/add',async (req, res) => {
   console.log('we are add  ::: ')
-  const {email_owner,username_owner,new_email_added,recaptchaToken_add} = req.body;
+  const {email_owner,username_owner,new_email_added,role_new_user,recaptchaToken_add} = req.body;
   console.log(email_owner)
   console.log(recaptchaToken_add)
+  console.log(role_new_user)
   console.log('********')
   console.log(RECAPTCHA_ADD_SECRET_KEY)
   const verifyUrlRecaptcha_add = `https://www.google.com/recaptcha/api/siteverify?secret=${RECAPTCHA_ADD_SECRET_KEY}&response=${recaptchaToken_add}`;
@@ -850,7 +860,11 @@ app.post('/add',async (req, res) => {
       console.log('recaptcha add sucess')
       const myCookie_token_in_add = req.cookies['jwtTokentableur'];  /// Replace 'myCookieName' with your actual cookie name
       const decoded_add = jwt.verify(myCookie_token_in_add, secretKey);
-      if(!isValidEmail(email_owner) || !isValidEmail(new_email_added)){
+      
+      if( role_new_user!='Admin' && role_new_user!='Writer' && role_new_user!='Viewer' ){
+        res.status(400).send('Authentication failed !!!.');
+      }
+      else if(!isValidEmail(email_owner) || !isValidEmail(new_email_added)){
         console.log('valie email failed owner or new')
         res.status(400).send('Authentication failed !!!.');
       } else if(Object.values(decoded_add)[0] !== username_owner){
@@ -859,7 +873,7 @@ app.post('/add',async (req, res) => {
         res.status(401).send('Authentication incorrect !!!.');
       } else {
         console.log('add part success')
-        var updatetoadduser = await update_to_add_user(email_owner,new_email_added,myCookie_token_in_add);
+        var updatetoadduser = await update_to_add_user(email_owner,new_email_added,role_new_user,myCookie_token_in_add);
         updatetoadduser
         console.log('updatetoadduser !!!!!!!!!!!!!!!!!!!!!!!')
         console.log(updatetoadduser)
@@ -868,7 +882,7 @@ app.post('/add',async (req, res) => {
         }
         console.log('we will continue to resstatus200 :')
         console.log(new_email_added);
-        res.status(200).json({'inputEmail':new_email_added,"codepass":updatetoadduser});
+        res.status(200).json({'inputEmail':new_email_added,"codepass":updatetoadduser,"role":role_new_user});
       }
 
     } else {
