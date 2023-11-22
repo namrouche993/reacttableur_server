@@ -34,6 +34,8 @@ var bodyParser = require('body-parser')
 const requestIp = require('request-ip');
 //const generateRandomString = require('./Tools/Randst_server');
 
+// || or signf
+
 const {isValidEmail,isValidPhoneNumber} = require('./Tools/IsValid');
 const {getCookieValue} = require('./Tools/getCookieValue.js');
 const app = express()
@@ -142,7 +144,7 @@ const updateByUsername = async (username, newData) => {
   }
 };
 
-const update_to_add_user = async (email_owner, new_email_of_user,role_new_user,myCookie_token_in_add) => {
+const update_to_add_user = async (email_owner, new_email_of_user,role_new_user,myCookie_token_in_add,route,username_owner) => {
     console.log('essai pass returning value :')
     console.log('*****************------------------------ ! 00')
    // console.log(generateRandomString(6).toLocaleUpperCase().toString())
@@ -153,18 +155,31 @@ const update_to_add_user = async (email_owner, new_email_of_user,role_new_user,m
         "users.user1.email": email_owner,
         "users.user1.token":myCookie_token_in_add
       };
-    
+
+      const filter2byroute = {"hisownroute":route}
+      var requestor_role = 'Viewer'
       // Find the document that matches the filter
-      const document = await MyModelMongoose.findOne(filter);
-    
+
+      //const document = await MyModelMongoose.findOne(filter);
+      const document = await MyModelMongoose.findOne(filter2byroute);
+
       if (document && document.users) {
-    
+        if(document.users.user1.idusername==username_owner){
+          requestor_role='Owner'
+        } else if(document.users.user2.idusername==username_owner){
+          requestor_role=document.users.user2.role;
+        } else if(document.users.user3.idusername==username_owner){
+          requestor_role=document.users.user3.role;
+        }
+
         var hisownroutewillbesigned = document.hisownroute;
         var tokenownroute = jwt.sign({hisownroutewillbesigned},secretKey);
         console.log('tokenownroute in accessfromurlcp verifiying pass ')
         console.log(tokenownroute)
         
+        if(requestor_role=='Owner' || requestor_role=='Admin'){
         if(!document.users.user2 && !document.users.user3){
+          // it means that the requestor is user1 and he is Owner , doesnt matter if add something
           var idusername_from_generated = generateRandomString(14,false);
           var codepass = crypto.randomInt(10000000, 99999999);
 
@@ -225,8 +240,10 @@ const update_to_add_user = async (email_owner, new_email_of_user,role_new_user,m
       }
     
         // Perform the update using findOneAndUpdate
-        const updatedDoc = await MyModelMongoose.findOneAndUpdate(filter, update, { new: true });
-    
+        //const updatedDoc = await MyModelMongoose.findOneAndUpdate(filter, update, { new: true });
+        const updatedDoc = await MyModelMongoose.findOneAndUpdate(filter2byroute, update, { new: true });
+
+        
         if (updatedDoc) {
           console.log("Document updated:");
           console.log(updatedDoc.users)
@@ -234,6 +251,9 @@ const update_to_add_user = async (email_owner, new_email_of_user,role_new_user,m
           return codepass
         } else {
           console.log("Document not updated.");
+          return false
+        }
+        } else {
           return false
         }
       } else {
@@ -784,16 +804,19 @@ app.post('/acc/accessfromurlcp',async (req, res) => {
 app.post('/allowedemails',async (req, res) => {
   console.log('we are in allowedemails  ::: ')
 
-  const {idusername} = req.body;
+  const {idusername,hisownroute} = req.body;
   const myCookie_token_in_allowedemails = req.cookies['jwtTokentableur'];  ///  Replace 'myCookieName' with your actual cookie name::!!!!
+  const myCookie_token_hisownroute_in_allowedemails = req.cookies['jwtTokentableurhisownroute'];  ///  Replace 'myCookieName' with your actual cookie name::!!!!
 
-  if(myCookie_token_in_allowedemails!==undefined && myCookie_token_in_allowedemails!==null){
+  if(myCookie_token_in_allowedemails!==undefined && myCookie_token_in_allowedemails!==null && myCookie_token_hisownroute_in_allowedemails!==undefined && myCookie_token_hisownroute_in_allowedemails!==null ){
     const decoded_in_allowedemails = jwt.verify(myCookie_token_in_allowedemails, secretKey);
+    const decoded_hisownroute_in_allowedemails = jwt.verify(myCookie_token_hisownroute_in_allowedemails,secretKey)
 
-    if (Object.values(decoded_in_allowedemails)[0] == idusername && idusername!==null) {
+    if (Object.values(decoded_in_allowedemails)[0] == idusername && idusername!==null && Object.values(decoded_hisownroute_in_allowedemails)[0] == hisownroute && hisownroute!==null) {
       console.log('we are in the 200 request in allowedemails')
-      var user_by_his_allowedemails = await MyModelMongoose.findOne({"users.user1.idusername":idusername});
-      
+      //var user_by_his_allowedemails = await MyModelMongoose.findOne({"users.user1.idusername":idusername});
+      var user_by_his_allowedemails = await MyModelMongoose.findOne({"hisownroute":hisownroute});
+
       console.log('user_by_his_allowedemails : ')
       //console.log(user_by_his_allowedemails)
       var his_allowedemails2 = null;
@@ -801,9 +824,20 @@ app.post('/allowedemails',async (req, res) => {
 
       var his_allowedemails3 = null;
       var his_allowedcode3 = null;
+      var role_of_the_requestor = 'Viewer';
 
       if(user_by_his_allowedemails){
         
+        if(user_by_his_allowedemails.users.user1.idusername==idusername){
+          role_of_the_requestor=user_by_his_allowedemails.users.user1.role
+
+        } else if (user_by_his_allowedemails.users.user2.idusername==idusername){
+          role_of_the_requestor=user_by_his_allowedemails.users.user2.role
+        } else if (user_by_his_allowedemails.users.user3.idusername==idusername){
+           role_of_the_requestor=user_by_his_allowedemails.users.user3.role
+        }
+
+    if(role_of_the_requestor=='Owner' || role_of_the_requestor=='Admin'){
       if( typeof user_by_his_allowedemails.users.user2 !== 'undefined' ){
         var his_allowedemails2 = user_by_his_allowedemails.users.user2.email;
         var his_allowedrole2 = user_by_his_allowedemails.users.user2.role;
@@ -824,11 +858,18 @@ app.post('/allowedemails',async (req, res) => {
         var his_allowedemails3 = null;
         var his_allowedrole3 = null;
         var his_allowedcode3 = null;
-
       }
+    } else {
+      var his_allowedemails2 = null;
+      var his_allowedrole2 = null;
+      var his_allowedcode2 = null;
+      var his_allowedemails3 = null;
+      var his_allowedrole3 = null;
+      var his_allowedcode3 = null;
     }
+  }
       //var his_allowedemails3 = user_by_his_allowedemails.users.user3.email;
-      res.status(200).json({"user2":{"useremail": his_allowedemails2,"role":his_allowedrole2,"code":his_allowedcode2},  "user3":{"useremail":his_allowedemails3,"role":his_allowedrole3,"code":his_allowedcode3}   } );
+      res.status(200).json({"user2":{"useremail": his_allowedemails2,"role":his_allowedrole2,"code":his_allowedcode2},  "user3":{"useremail":his_allowedemails3,"role":his_allowedrole3,"code":his_allowedcode3} , "role_of_the_requestor":role_of_the_requestor   } );
     } else {
       res.status(401).send('Authorization failed !!!.');
     }
@@ -841,7 +882,7 @@ app.post('/allowedemails',async (req, res) => {
 
 app.post('/add',async (req, res) => {
   console.log('we are add  ::: ')
-  const {email_owner,username_owner,new_email_added,role_new_user,recaptchaToken_add} = req.body;
+  const {email_owner,username_owner,new_email_added,role_new_user,recaptchaToken_add,route} = req.body;
   console.log(email_owner)
   console.log(recaptchaToken_add)
   console.log(role_new_user)
@@ -873,7 +914,7 @@ app.post('/add',async (req, res) => {
         res.status(401).send('Authentication incorrect !!!.');
       } else {
         console.log('add part success')
-        var updatetoadduser = await update_to_add_user(email_owner,new_email_added,role_new_user,myCookie_token_in_add);
+        var updatetoadduser = await update_to_add_user(email_owner,new_email_added,role_new_user,myCookie_token_in_add,route,username_owner);
         updatetoadduser
         console.log('updatetoadduser !!!!!!!!!!!!!!!!!!!!!!!')
         console.log(updatetoadduser)
@@ -1067,6 +1108,47 @@ app.post('/clearcookie', (req, res) => {
   res.status(200).send('Cookie cleared');
 
 });
+
+app.post('/users_roles_navbar',async (req,res)=>{
+  try {
+    const {username,hisownroute} = req.body;
+    const myCookie_token_in_usersrolesnavbar = req.cookies['jwtTokentableur'];  
+    const myCookie_token_hisownroute_in_usersrolesnavbar = req.cookies['jwtTokentableurhisownroute']; 
+
+    const decoded = jwt.verify(myCookie_token_in_usersrolesnavbar, secretKey);
+  
+    if (Object.values(decoded)[0] !== username) {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
+
+    const decoded_jwtcookiehisownroute = jwt.verify(myCookie_token_hisownroute_in_usersrolesnavbar, secretKey);  
+    if (Object.values(decoded_jwtcookiehisownroute)[0] !== hisownroute) {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
+
+    var user_by_route = await MyModelMongoose.findOne({"hisownroute":hisownroute});
+
+    if(!user_by_route){
+      return res.status(400).json({ message: 'Forbidden' });
+    } else {
+      if(user_by_route.users.user1.idusername==username){
+        return res.status(200).json({"role":user_by_route.users.user1.role})
+      } else if(user_by_route.users.user2.idusername==username){
+        return res.status(200).json({"role":user_by_route.users.user2.role})
+      } else if(user_by_route.users.user3.idusername==username){
+        return res.status(200).json({"role":user_by_route.users.user3.role})
+      } else {
+        res.status(400).json({message:'username doesnt exist '})
+      }
+
+    }
+
+  } catch (error) {
+    
+  }
+
+
+})
 
 
 // //////////////////             SOCKET !
