@@ -1110,13 +1110,17 @@ app.post('/clearcookie', (req, res) => {
 });
 
 app.post('/users_roles_navbar',async (req,res)=>{
+  console.log('we are in users_roles_navbar')
   try {
     const {username,hisownroute} = req.body;
     const myCookie_token_in_usersrolesnavbar = req.cookies['jwtTokentableur'];  
     const myCookie_token_hisownroute_in_usersrolesnavbar = req.cookies['jwtTokentableurhisownroute']; 
 
     const decoded = jwt.verify(myCookie_token_in_usersrolesnavbar, secretKey);
-  
+
+    if (username==undefined){
+      return res.status(402).json({message:'new'})
+    }
     if (Object.values(decoded)[0] !== username) {
       return res.status(403).json({ message: 'Forbidden' });
     }
@@ -1144,7 +1148,9 @@ app.post('/users_roles_navbar',async (req,res)=>{
     }
 
   } catch (error) {
-    
+    console.log('we are in users_roles_navbar catch error ')
+    return res.status(402).json({message:'new'})
+
   }
 
 
