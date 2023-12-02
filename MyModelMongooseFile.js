@@ -9,7 +9,8 @@ const userSchema_owner = new Schema({
   token: {required:true,type:String},
   //owner: {required:true,type:Boolean},
   role : {required:true,type:String,default:'Owner',immutable:true},
-  hisownroutetoken:{required:true,type:String}
+  hisownroutetoken:{required:true,type:String},
+  email_to_display: {required:true,type:String}
 });
 
 const userSchema_teammate = new Schema({
@@ -19,7 +20,8 @@ const userSchema_teammate = new Schema({
   token: {required:false,type:String},
   //owner: {required:false,type:Boolean},
   role : {required:false,type:String,   enum:["Admin","Writer","Viewer"]},
-  hisownroutetoken:{required:false,type:String}
+  hisownroutetoken:{required:false,type:String},
+  email_to_display: {required:false,type:String}
 
 });
 
@@ -31,8 +33,10 @@ const MySchema = new Schema({
   dataa: {required:true,type:Array},
   users: {
     user1: userSchema_owner,
+    user12: userSchema_owner,
     user2: userSchema_teammate,
     user3: userSchema_teammate,
+    
   },
 }, { collection: 'spreadsheet' });
 

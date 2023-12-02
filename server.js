@@ -113,6 +113,7 @@ const updateByUsername = async (username, newData) => {
       {
         $or: [
           { "users.user1.idusername": username },
+          { "users.user12.idusername": username },
           { "users.user2.idusername": username },
           { "users.user3.idusername": username }
         ]
@@ -131,7 +132,7 @@ const updateByUsername = async (username, newData) => {
       console.log('updatedUser s')
       var returning = true;
       return true
-      //console.log('User updated:', updatedUser); 
+      //console.log('User updated:', updatedUser); !!
     } else {
       var returning = false;
       return false
@@ -166,6 +167,8 @@ const update_to_add_user = async (email_owner, new_email_of_user,role_new_user,m
       if (document && document.users) {
         if(document.users.user1.idusername==username_owner){
           requestor_role='Owner'
+        } else if(document.users.user12.idusername==username_owner){
+          requestor_role='Owner'
         } else if(document.users.user2.idusername==username_owner){
           requestor_role=document.users.user2.role;
         } else if(document.users.user3.idusername==username_owner){
@@ -188,6 +191,7 @@ const update_to_add_user = async (email_owner, new_email_of_user,role_new_user,m
           $set: {
             "users.user2.idusername": idusername_from_generated,
             "users.user2.email": new_email_of_user,
+            "users.user2.email_to_display": new_email_of_user,
             "users.user2.token": jwt.sign({ idusername_from_generated }, secretKey),
             //"users.user2.owner": false,
             "users.user2.role":role_new_user,
@@ -207,6 +211,7 @@ const update_to_add_user = async (email_owner, new_email_of_user,role_new_user,m
           $set: {
             "users.user2.idusername": idusername_from_generated,
             "users.user2.email": new_email_of_user,
+            "users.user2.email_to_display": new_email_of_user,
             "users.user2.token": jwt.sign({ idusername_from_generated }, secretKey),
             //"users.user2.owner": false,
             "users.user2.role":role_new_user,
@@ -224,6 +229,7 @@ const update_to_add_user = async (email_owner, new_email_of_user,role_new_user,m
           $set: {
             "users.user3.idusername": idusername_from_generated,
             "users.user3.email": new_email_of_user,
+            "users.user3.email_to_display": new_email_of_user,
             "users.user3.token": jwt.sign({ idusername_from_generated }, secretKey),
             //"users.user3.owner": false,
             "users.user3.role":role_new_user,
@@ -270,7 +276,7 @@ const update_to_add_user = async (email_owner, new_email_of_user,role_new_user,m
 };
 
 
-app.post('/register',authenticate, (req, res) => {
+app.post('/register',authenticate, (req, res) => { // editable to remove
    console.log('we are in register')
    //const { username, password } = req.body;!!
    
@@ -341,7 +347,7 @@ try {
 
 
 
-app.post('/tab/saveData',(req,res)=>{
+app.post('/tab/saveData',(req,res)=>{ // editable to remove , not nessecary
   const { datar_received } = req.body ;
   console.log('data received succesfully ! ')
   console.log(datar_received)
@@ -384,6 +390,7 @@ console.log('we will enter in try')
      // console.log(decoded_in_ownenter)
     if (
     user_by_route.users.user1.token == myCookie_token && user_by_route.users.user1.idusername==Object.values(decoded_in_ownenter)[0] || //decoded_in_ownenter.newidusername
+    user_by_route.users.user12.token == myCookie_token && user_by_route.users.user12.idusername==Object.values(decoded_in_ownenter)[0] || //decoded_in_ownenter.newidusername
     user_by_route.users.user2.token == myCookie_token && user_by_route.users.user2.idusername==Object.values(decoded_in_ownenter)[0] || //decoded_in_ownenter.newidusername
     user_by_route.users.user3.token == myCookie_token && user_by_route.users.user3.idusername==Object.values(decoded_in_ownenter)[0]  //decoded_in_ownenter.newidusername
     ) {
@@ -442,6 +449,7 @@ app.post('/tab/enter', async (req, res) => {
           //{"idusername":idusername}
           $or: [
             { "users.user1.idusername": idusername },
+            { "users.user12.idusername": idusername },
             { "users.user2.idusername": idusername },
             { "users.user3.idusername": idusername }
           ]
@@ -485,6 +493,8 @@ app.post('/tab/login', async (req, res) => {
 
       const { organisme, region,email,phoneNumber } = req.body;
       var idusername_from_generated = generateRandomString(14,false);
+      var idusername_from_generated_12 = generateRandomString(14,false);
+
       console.log(idusername_from_generated)
       var dataa_inital = ddatafct00(last_row_after_header)//retreived_data;
     
@@ -510,6 +520,10 @@ app.post('/tab/login', async (req, res) => {
       // Create a JWT token with the user's username
       const token = jwt.sign({ idusername_from_generated }, secretKey);
       console.log(token);
+
+      const token12 = jwt.sign({ idusername_from_generated_12 }, secretKey);
+      console.log(token12);
+
     
       var hisownroute = generateRandomString(25,false).toLowerCase();
       //const hisownroute = jwt.sign({idusername_from_generated,email,region,phoneNumber})
@@ -517,9 +531,22 @@ app.post('/tab/login', async (req, res) => {
       console.log(hisownroute);
 
       var hisownroutewillbesigned = hisownroute;
-      const tokenownroute = jwt.sign({hisownroutewillbesigned},secretKey)
+      const tokenownroute = jwt.sign({hisownroutewillbesigned, user:"user1"},secretKey)
+      console.log('******************************')
+      console.log('******************************')
+      console.log('******************************')
+      console.log('******************************')
       console.log(tokenownroute)
-
+      console.log('-----------------------------------------')
+      console.log('------------------------------------------')
+      console.log('-----------------------------------------')
+      console.log('-----------------------------------------')
+      const tokenownroute12 = jwt.sign({hisownroutewillbesigned, user:"user2"},secretKey)
+      console.log(tokenownroute12)
+      var emailtodisplay = email + "(poste2)"
+      console.log(emailtodisplay)
+      var codepass1 = crypto.randomInt(10000000, 99999999);
+      var codepass12 = crypto.randomInt(10000000, 99999999);
 
         const newRecord = new MyModelMongoose({
           "users.user1.idusername":idusername_from_generated,
@@ -533,11 +560,22 @@ app.post('/tab/login', async (req, res) => {
           "users.user1.token":token,
           //"users.user1.owner":true,
           "users.user1.role":"Owner",
-          "users.user1.pass":generateRandomString(6,true), // maybe editable when changing string to numbers
-          "users.user1.hisownroutetoken":tokenownroute
+          "users.user1.pass":  codepass1, //generateRandomString(6,true), // maybe editable when changing string to numbers
+          "users.user1.hisownroutetoken":tokenownroute,
+          "users.user1.email_to_display":email,          
+
+
+          "users.user12.idusername":idusername_from_generated_12,
+          "users.user12.email":email,
+          "users.user12.token":token12,
+          "users.user12.role":"Owner",
+          "users.user12.pass":codepass12,  //generateRandomString(6,true), // maybe editable when changing string to numbers
+          "users.user12.hisownroutetoken":tokenownroute12,
+          "users.user12.email_to_display":emailtodisplay
+
         });
         console.log('newRecord before:')
-        console.log(newRecord)
+        //console.log(newRecord)
         //newRecord.save();
         
         console.log('we will make await newrecord.save')
@@ -548,12 +586,12 @@ app.post('/tab/login', async (req, res) => {
         //res.json(savedItem);
 
         console.log('newRecord after Save:')
-        console.log(newRecord)
+        //console.log(newRecord)
     
         res.cookie('jwtTokentableur', token, { httpOnly: true,  maxAge: 8640000000 });
         res.cookie('jwtTokentableurhisownroute', tokenownroute, { httpOnly: true,  maxAge: 8640000000 });
         
-        res.json({"idusername_to_client_side":idusername_from_generated,"hisownroute":hisownroute});
+        res.json({"idusername_to_client_side":idusername_from_generated,"hisownroute":hisownroute,"emailtodisplay":emailtodisplay});
         console.log('after resjson');
           
       
@@ -580,7 +618,7 @@ app.post('/tab/login', async (req, res) => {
 
 // authorizeUser is in separated file
 
-app.post('/hello', function(req, res){
+app.post('/hello', function(req, res){ // editable to remove
    res.send("You just called the post method at '/hello'!\n");
 });
 
@@ -609,13 +647,16 @@ app.post('/acc/accessfromurlem',async (req, res) => {
       
   if (email_in_db) {
     console.log('we are in emailindb')
-    if(email_in_db.users.user1){
+    if(email_in_db.users.user12){
       console.log('we are in emailindb users.user1')
-      if (email_in_db.users.user1.email === email) {
-        var findemailinFields = email_in_db.users.user1;
+      if (email_in_db.users.user12.email === email) {
+        var findemailinFields = email_in_db.users.user12;
 
-        res.status(200).json({'idusername_to_client_side':email_in_db.users.user1.idusername,
-                              'email':email_in_db.users.user1.email});
+        res.status(200).json({'idusername_to_client_side':email_in_db.users.user12.idusername,
+                              'email':email_in_db.users.user12.email,
+                              'emailtodisplay':email_in_db.users.user12.email_to_display,
+                            
+                            });
 
         console.log('Email found in users.user1.email');
       } 
@@ -625,14 +666,19 @@ app.post('/acc/accessfromurlem',async (req, res) => {
           var findemailinFields = email_in_db.users.user2;
           console.log('Email found in users.user2.email');
           res.status(200).json({'idusername_to_client_side':email_in_db.users.user2.idusername,
-          'email':email_in_db.users.user2.email});
+          'email':email_in_db.users.user2.email,
+          'emailtodisplay':email_in_db.users.user2.email_to_display,
+        });
         }
         else if(email_in_db.users.user3){
           console.log('we are in emailindb users.user3')
           if (email_in_db.users.user3.email === email) {
             var findemailinFields = email_in_db.users.user3;
             res.status(200).json({'idusername_to_client_side':email_in_db.users.user3.idusername,
-            'email':email_in_db.users.user3.email});
+            'email':email_in_db.users.user3.email,
+            'emailtodisplay':email_in_db.users.user3.email_to_display,
+
+          });
 
             console.log('Email found in users.user3.email');
           } else {
@@ -650,7 +696,9 @@ app.post('/acc/accessfromurlem',async (req, res) => {
         if (email_in_db.users.user3.email === email) {
           var findemailinFields = email_in_db.users.user3;
           res.status(200).json({'idusername_to_client_side':email_in_db.users.user3.idusername,
-          'email':email_in_db.users.user3.email});
+          'email':email_in_db.users.user3.email,
+          'emailtodisplay':email_in_db.users.user3.email_to_display,
+        });
 
           console.log('Email found in users.user3.email');
         } else {
@@ -710,11 +758,11 @@ app.post('/acc/accessfromurlcp',async (req, res) => {
 
   if (email_in_db) {
     console.log('we are in emailindb')
-    if(email_in_db.users.user1){
+    if(email_in_db.users.user12){
       console.log('we are in emailindb users.user1')
-      if (email_in_db.users.user1.email === email) {
-        var findpassinFields = email_in_db.users.user1;
-        console.log('Email found in users.user1.email');
+      if (email_in_db.users.user12.email === email) {
+        var findpassinFields = email_in_db.users.user12;
+        console.log('Email found in users.user12.email');
       } 
       else if(email_in_db.users.user2){
         console.log('we are in emailindb users.user2')
@@ -783,7 +831,9 @@ app.post('/acc/accessfromurlcp',async (req, res) => {
     'region':email_in_db.region,
     'dataa':email_in_db.dataa,
     'hisownroute':email_in_db.hisownroute,
-    'role':findpassinFields.role
+    'role':findpassinFields.role,
+    'email_to_display':findpassinFields.email_to_display,
+
 
     //,'token_aftersuccesspass':findpassinFields.token
   });
@@ -824,24 +874,38 @@ app.post('/allowedemails',async (req, res) => {
 
       var his_allowedemails3 = null;
       var his_allowedcode3 = null;
+      
       var role_of_the_requestor = 'Viewer';
+
+      var his_allowedemails12 = null;
+      var his_allowedrole12 = null;
+      var his_allowedcode12 = null;
+      var emailslength = 2;
+
 
       if(user_by_his_allowedemails){
         
         if(user_by_his_allowedemails.users.user1.idusername==idusername){
           role_of_the_requestor=user_by_his_allowedemails.users.user1.role
+        } else if (user_by_his_allowedemails.users.user12.idusername==idusername){
+          role_of_the_requestor=user_by_his_allowedemails.users.user12.role
 
-        } else if (user_by_his_allowedemails.users.user2.idusername==idusername){
-          role_of_the_requestor=user_by_his_allowedemails.users.user2.role
-        } else if (user_by_his_allowedemails.users.user3.idusername==idusername){
-           role_of_the_requestor=user_by_his_allowedemails.users.user3.role
+        } else if (user_by_his_allowedemails.users.user2){
+          if(user_by_his_allowedemails.users.user2.idusername==idusername){
+            role_of_the_requestor=user_by_his_allowedemails.users.user2.role  
         }
+      } else if (user_by_his_allowedemails.users.user3){
+         if (user_by_his_allowedemails.users.user3.idusername==idusername){
+          role_of_the_requestor=user_by_his_allowedemails.users.user3.role
+       }
+      }      
 
     if(role_of_the_requestor=='Owner' || role_of_the_requestor=='Admin'){
       if( typeof user_by_his_allowedemails.users.user2 !== 'undefined' ){
         var his_allowedemails2 = user_by_his_allowedemails.users.user2.email;
         var his_allowedrole2 = user_by_his_allowedemails.users.user2.role;
         var his_allowedcode2 = user_by_his_allowedemails.users.user2.pass;
+        emailslength=emailslength+1;
       } else {
         var his_allowedemails2 = null;
         var his_allowedrole2 = null;
@@ -853,6 +917,7 @@ app.post('/allowedemails',async (req, res) => {
         var his_allowedemails3 = user_by_his_allowedemails.users.user3.email;
         var his_allowedrole3 = user_by_his_allowedemails.users.user3.role;
         var his_allowedcode3 = user_by_his_allowedemails.users.user3.pass;
+        emailslength=emailslength+1;
 
       } else {
         var his_allowedemails3 = null;
@@ -868,8 +933,27 @@ app.post('/allowedemails',async (req, res) => {
       var his_allowedcode3 = null;
     }
   }
+  if(role_of_the_requestor!='Owner'){
+    var his_allowedemails12=null;
+    var his_allowedcode12 = null;
+    var his_allowedrole12 = null;
+
+  } else {
+    var his_allowedemails12 = user_by_his_allowedemails.users.user12.email_to_display;
+    var his_allowedcode12   = user_by_his_allowedemails.users.user12.pass;
+    var his_allowedrole12   = user_by_his_allowedemails.users.user12.role;
+  }
+  console.log('his_allowedcode3 ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::')
+  console.log(his_allowedcode3)
       //var his_allowedemails3 = user_by_his_allowedemails.users.user3.email;
-      res.status(200).json({"user2":{"useremail": his_allowedemails2,"role":his_allowedrole2,"code":his_allowedcode2},  "user3":{"useremail":his_allowedemails3,"role":his_allowedrole3,"code":his_allowedcode3} , "role_of_the_requestor":role_of_the_requestor   } );
+      res.status(200).json({
+      "user12":{"useremail":his_allowedemails12  ,"role":his_allowedrole12,  "code":his_allowedcode12},
+      "user2":{"useremail": his_allowedemails2,"role":his_allowedrole2,"code":his_allowedcode2},
+      "user3":{"useremail":his_allowedemails3,"role":his_allowedrole3,"code":his_allowedcode3} , 
+      "role_of_the_requestor":role_of_the_requestor,
+      "emailslength":emailslength
+    }
+    );
     } else {
       res.status(401).send('Authorization failed !!!.');
     }
@@ -941,10 +1025,10 @@ app.post('/add',async (req, res) => {
 
 
 
-app.post('/removedemail',async (req, res) => {
+app.post('/removedemail',async (req, res) => { 
   console.log('we are in removedemail  ::: ')
 
-  const {emailremoved,idusername} = req.body;
+  const {emailremoved,idusername,currentrouteofurl} = req.body;
   const myCookie_token_in_removedemail = req.cookies['jwtTokentableur'];  /// Replace 'myCookieName' with your actual cookie name::!!!!
 
   if(myCookie_token_in_removedemail!==undefined && myCookie_token_in_removedemail!==null){
@@ -953,19 +1037,61 @@ app.post('/removedemail',async (req, res) => {
     if (Object.values(decoded_in_removedemail)[0] == idusername && idusername!==null) {
       console.log('we are in the 200 request in removedemail')
      try{
+      var role_of_the_requestor = 'Viewer';
+      const foundDoc = await MyModelMongoose.findOne({"hisownroute":currentrouteofurl});
+      console.log(Object.keys(foundDoc.users).length)
+
+      /*
       const foundDoc = await MyModelMongoose.findOne({
         $or: [
           { 'users.user2.email': emailremoved },
           { 'users.user3.email': emailremoved }
         ]
       });
+      */
       console.log('**************')
       //console.log(foundDoc.users)
-      
       if (foundDoc) {
-        var unsetField = foundDoc.users.user2 ? (foundDoc.users.user2.email === emailremoved ? 'users.user2' : 'users.user3') : (foundDoc.users.user3 ? (foundDoc.users.user3.email === emailremoved ? 'users.user3' : null) : null  )   ;
-      console.log('unsetField :')
-      console.log(unsetField);
+        if(foundDoc.users.user1.idusername==idusername || foundDoc.users.user12.idusername==idusername){
+          role_of_the_requestor='Owner'
+        } else if(foundDoc.users.user2){
+            if(foundDoc.users.user2.idusername==idusername){
+              role_of_the_requestor = foundDoc.users.user2.role;
+            }
+        } else if(foundDoc.users.user3){
+            if(foundDoc.users.user3.idusername==idusername){
+            role_of_the_requestor = foundDoc.users.user3.role;
+          }
+        }
+        if(role_of_the_requestor!=='Owner' && role_of_the_requestor!=='Admin'){
+          return res.status(500).send('role of the requestor cannot remove !');
+        }
+
+
+
+        if(foundDoc.users.user2){
+          if(foundDoc.users.user2.email==emailremoved){
+            var unsetField = 'users.user2'
+          } else if(foundDoc.users.user3){
+              if(foundDoc.users.user3.email==emailremoved){
+                var unsetField = 'users.user3'
+              }
+            } else {
+              var unsetField = null
+            }
+        } else if (foundDoc.users.user3){
+          if(foundDoc.users.user3.email==emailremoved){
+            var unsetField = 'users.user3'
+          } else {
+            var unsetField = null
+          }
+        } else {
+          var unsetField = null
+        }
+
+        //var unsetField = foundDoc.users.user2 ? (foundDoc.users.user2.email === emailremoved ? 'users.user2' : 'users.user3') : (foundDoc.users.user3 ? (foundDoc.users.user3.email === emailremoved ? 'users.user3' : null) : null  )   ;
+        console.log('unsetField :')
+        console.log(unsetField);
 
         if(unsetField){
         // Now update the document to unset the field determined above
@@ -976,14 +1102,16 @@ app.post('/removedemail',async (req, res) => {
         );
       
         if (updatedDoc_removed) {
+          var emailslengthbeforeremoved = Object.keys(foundDoc.users).length
           console.log('Updated document:');
-          res.status(200).send('Document updated');
+          res.status(200).json({"emailslength":emailslengthbeforeremoved-1})
+          //res.status(200).send('Document updated');
         } else {
           console.log('Failed to update the document.');
           res.status(500).send('Failed to update the document');
         }
       } else {
-        console.log('Document not found.');
+        console.log('Document not found!!!!!!.');
         res.status(404).send('Document not found');   
       }
       } else {
@@ -1137,6 +1265,8 @@ app.post('/users_roles_navbar',async (req,res)=>{
     } else {
       if(user_by_route.users.user1.idusername==username){
         return res.status(200).json({"role":user_by_route.users.user1.role})
+      } else if(user_by_route.users.user12.idusername==username){
+          return res.status(200).json({"role":user_by_route.users.user12.role})
       } else if(user_by_route.users.user2.idusername==username){
         return res.status(200).json({"role":user_by_route.users.user2.role})
       } else if(user_by_route.users.user3.idusername==username){
@@ -1217,6 +1347,12 @@ io.on('connection', (socket) => {
 
   var namespace = socket.handshake.query.namespace0;
   console.log(namespace)
+
+  console.log('connection : --------------------------------------------------')
+  console.log(socket.handshake.query.username)
+  console.log(socket.handshake.query.email)
+  console.log(socket.handshake.query.email_to_display)
+
   if (!namespace){
     console.log('namesopace is undefiened!!!')
     return 'namespace is undefined!!!!!!!!!!!'
@@ -1259,8 +1395,12 @@ if (socketsInTargetRoom) {
     const socket = io.sockets.sockets.get(socketId);
     if (socket) {
       console.log('**********************************')
+      console.log(`ussd74kasd75_2: ${socket.handshake.query.username}`);
       console.log(`email: ${socket.handshake.query.email}`);
-      usersList[namespace].push(socket.handshake.query.email)
+      console.log(`email_to_display: ${socket.handshake.query.email_to_display}`);
+
+      //***usersList[namespace].push(socket.handshake.query.email)
+      usersList[namespace].push(socket.handshake.query.email_to_display)
       
       // Add email to your usersList arrayf
     }
@@ -1274,7 +1414,8 @@ if (socketsInTargetRoom) {
     
   const username_from_query = socket.handshake.query.username;
   const email_from_query = socket.handshake.query.email;
-  
+  const email_from_query_to_display = socket.handshake.query.email_to_display;
+
 
   io.to(namespace).emit('listingusers',usersList[namespace])
       
@@ -1292,7 +1433,7 @@ if (socketsInTargetRoom) {
   
   
     socket.on('disconnect', () => {
-      updatedUsersList.namespace = usersList[namespace].filter(user => user !== email_from_query);
+      updatedUsersList.namespace = usersList[namespace].filter(user => user !== email_from_query_to_display);
       io.to(namespace).emit('listingusers',updatedUsersList[namespace]);
       console.log('User disconnected');
   
