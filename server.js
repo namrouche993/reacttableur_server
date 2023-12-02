@@ -115,7 +115,11 @@ const updateByUsername = async (username, newData) => {
           { "users.user1.idusername": username },
           { "users.user12.idusername": username },
           { "users.user2.idusername": username },
-          { "users.user3.idusername": username }
+          { "users.user3.idusername": username },
+
+          { "users.user4.idusername": username },
+          { "users.user5.idusername": username }
+
         ]
       },
       //{ idusername: username },
@@ -163,30 +167,34 @@ const update_to_add_user = async (email_owner, new_email_of_user,role_new_user,m
 
       //const document = await MyModelMongoose.findOne(filter);
       const document = await MyModelMongoose.findOne(filter2byroute);
+      if(document && document.users) {
 
-      if (document && document.users) {
-        if(document.users.user1.idusername==username_owner){
-          requestor_role='Owner'
-        } else if(document.users.user12.idusername==username_owner){
-          requestor_role='Owner'
-        } else if(document.users.user2.idusername==username_owner){
-          requestor_role=document.users.user2.role;
-        } else if(document.users.user3.idusername==username_owner){
-          requestor_role=document.users.user3.role;
-        }
 
-        var hisownroutewillbesigned = document.hisownroute;
-        var tokenownroute = jwt.sign({hisownroutewillbesigned},secretKey);
-        console.log('tokenownroute in accessfromurlcp verifiying pass ')
-        console.log(tokenownroute)
-        
-        if(requestor_role=='Owner' || requestor_role=='Admin'){
-        if(!document.users.user2 && !document.users.user3){
-          // it means that the requestor is user1 and he is Owner , doesnt matter if add something
-          var idusername_from_generated = generateRandomString(14,false);
-          var codepass = crypto.randomInt(10000000, 99999999);
+        for(const userId in document.users){
+          if (document.users.hasOwnProperty(userId) && document.users[userId]) {
+            var theuser = document.users[userId];
+            console.log('theuser before if :')
+            console.log(userId)
+            //console.log(theuser)
+            if (theuser.idusername==username_owner) {
+              console.log('email found in : theuser.email equal to email ')
+              //console.log(theuser)
+              requestor_role = document.users[userId].role
+              console.log('Email found in users[userId].role  RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR');
+              console.log(requestor_role)
+              break
+            }
+          }
+     }
+     var hisownroutewillbesigned = document.hisownroute;
+     var tokenownroute = jwt.sign({hisownroutewillbesigned},secretKey);
+     console.log('tokenownroute in accessfromurlcp verifiying pass ')
+     console.log(tokenownroute)
 
-        // Perform an update if user2 exists
+     if(requestor_role=='Owner' || requestor_role=='Admin'){
+      var idusername_from_generated = generateRandomString(14,false);
+      var codepass = crypto.randomInt(10000000, 99999999);
+      if(!document.users.user2 ){
         var update = {
           $set: {
             "users.user2.idusername": idusername_from_generated,
@@ -200,31 +208,8 @@ const update_to_add_user = async (email_owner, new_email_of_user,role_new_user,m
             // Add more fields or update operations as needed
           }
         }
-      } else if(!document.users.user2 && document.users.user3){
-          var idusername_from_generated = generateRandomString(14,false);
-          var codepass = crypto.randomInt(10000000, 99999999);
 
-          console.log('user2 no and user3 yes')
-
-        // Perform an update if user2 exists
-        var update = {
-          $set: {
-            "users.user2.idusername": idusername_from_generated,
-            "users.user2.email": new_email_of_user,
-            "users.user2.email_to_display": new_email_of_user,
-            "users.user2.token": jwt.sign({ idusername_from_generated }, secretKey),
-            //"users.user2.owner": false,
-            "users.user2.role":role_new_user,
-            "users.user2.pass": codepass,
-            "users.user2.hisownroutetoken":tokenownroute
-
-            // Add more fields or update operations as needed
-          }
-        }
-      } else if (document.users.user2 && !document.users.user3){
-        var idusername_from_generated = generateRandomString(14,false);
-        var codepass = crypto.randomInt(10000000, 99999999);
-
+      } else if (!document.users.user3){
         var update = {
           $set: {
             "users.user3.idusername": idusername_from_generated,
@@ -235,38 +220,68 @@ const update_to_add_user = async (email_owner, new_email_of_user,role_new_user,m
             "users.user3.role":role_new_user,
             "users.user3.pass": codepass,
             "users.user3.hisownroutetoken":tokenownroute
-
             // Add more fields or update operations as needed
           }
-        };
+        }
+
+        /*  // editable when we want to change the nb of users , let this and remove user4 and users5
+        else { 
+          console.log('user2 and user3 existed , so do nothing')
+          return false
+        }
+        */
+      } else if (!document.users.user4){  // editable when we want to change the nb of users 
+        var update = {
+          $set: {
+            "users.user4.idusername": idusername_from_generated,
+            "users.user4.email": new_email_of_user,
+            "users.user4.email_to_display": new_email_of_user,
+            "users.user4.token": jwt.sign({ idusername_from_generated }, secretKey),
+            //"users.user4.owner": false,
+            "users.user4.role":role_new_user,
+            "users.user4.pass": codepass,
+            "users.user4.hisownroutetoken":tokenownroute
+            // Add more fields or update operations as needed
+          }
+        }
+      } else if (!document.users.user5){  // editable when we want to change the nb of users 
+        var update = {
+          $set: {
+            "users.user5.idusername": idusername_from_generated,
+            "users.user5.email": new_email_of_user,
+            "users.user5.email_to_display": new_email_of_user,
+            "users.user5.token": jwt.sign({ idusername_from_generated }, secretKey),
+            //"users.user5.owner": false,
+            "users.user5.role":role_new_user,
+            "users.user5.pass": codepass,
+            "users.user5.hisownroutetoken":tokenownroute
+            // Add more fields or update operations as needed
+          }
+        }
       } else {
         console.log('user2 and user3 existed , so do nothing')
         return false
-        //return res.status(401).send('Add to list is limited !!!.');
       }
-    
-        // Perform the update using findOneAndUpdate
-        //const updatedDoc = await MyModelMongoose.findOneAndUpdate(filter, update, { new: true });
-        const updatedDoc = await MyModelMongoose.findOneAndUpdate(filter2byroute, update, { new: true });
-
-        
-        if (updatedDoc) {
-          console.log("Document updated:");
-          console.log(updatedDoc.users)
-          console.log(updatedDoc.users.user2)
-          return codepass
-        } else {
-          console.log("Document not updated.");
-          return false
-        }
-        } else {
-          return false
-        }
+      const updatedDoc = await MyModelMongoose.findOneAndUpdate(filter2byroute, update, { new: true });  
+      if (updatedDoc) {
+        console.log("Document updated:");
+        //console.log(updatedDoc.users)
+        return codepass
       } else {
-        console.log("User2 does not exist or document not found matching the filter.");
+        console.log("Document not updated.");
         return false
-
       }
+
+      } else {
+        console.log('requestors are not owner or admins')
+        return false
+      }
+
+    } else {
+      console.log("User2 does not exist or document not found matching the filter.");
+      return false
+
+    }
     } catch (error) {
       console.error("Error updating user:", error);
       return false
@@ -391,8 +406,12 @@ console.log('we will enter in try')
     if (
     user_by_route.users.user1.token == myCookie_token && user_by_route.users.user1.idusername==Object.values(decoded_in_ownenter)[0] || //decoded_in_ownenter.newidusername
     user_by_route.users.user12.token == myCookie_token && user_by_route.users.user12.idusername==Object.values(decoded_in_ownenter)[0] || //decoded_in_ownenter.newidusername
-    user_by_route.users.user2.token == myCookie_token && user_by_route.users.user2.idusername==Object.values(decoded_in_ownenter)[0] || //decoded_in_ownenter.newidusername
-    user_by_route.users.user3.token == myCookie_token && user_by_route.users.user3.idusername==Object.values(decoded_in_ownenter)[0]  //decoded_in_ownenter.newidusername
+    
+    ( user_by_route.users.user2 && user_by_route.users.user2.token == myCookie_token && user_by_route.users.user2.idusername==Object.values(decoded_in_ownenter)[0] ) || //decoded_in_ownenter.newidusername
+    ( user_by_route.users.user3 && user_by_route.users.user3.token == myCookie_token && user_by_route.users.user3.idusername==Object.values(decoded_in_ownenter)[0] ) || //decoded_in_ownenter.newidusername
+    ( user_by_route.users.user4 && user_by_route.users.user4.token == myCookie_token && user_by_route.users.user4.idusername==Object.values(decoded_in_ownenter)[0] ) || //decoded_in_ownenter.newidusername
+    ( user_by_route.users.user5 && user_by_route.users.user5.token == myCookie_token && user_by_route.users.user5.idusername==Object.values(decoded_in_ownenter)[0] )   //decoded_in_ownenter.newidusername
+
     ) {
     console.log('4cond')
     //console.log(user_by_route.dataa)
@@ -412,6 +431,7 @@ console.log('we will enter in try')
 }
 } catch (error) {
   console.log('7cond')
+  console.log(error)
   res.status(401).send('Authentication failed !!!.');   
 }
 });
@@ -445,13 +465,17 @@ app.post('/tab/enter', async (req, res) => {
           { $set: {dataa: data_now}},
         );
         */
-        var user_in_enter = await MyModelMongoose.findOne({
+        var user_in_enter = await MyModelMongoose.findOne({  // maybe editable, i think we should change it to search hisownroute instead of idusernames
           //{"idusername":idusername}
           $or: [
             { "users.user1.idusername": idusername },
             { "users.user12.idusername": idusername },
             { "users.user2.idusername": idusername },
-            { "users.user3.idusername": idusername }
+            { "users.user3.idusername": idusername },
+
+            { "users.user4.idusername": idusername },
+            { "users.user5.idusername": idusername }
+
           ]
         }
           )
@@ -531,19 +555,13 @@ app.post('/tab/login', async (req, res) => {
       console.log(hisownroute);
 
       var hisownroutewillbesigned = hisownroute;
-      const tokenownroute = jwt.sign({hisownroutewillbesigned, user:"user1"},secretKey)
-      console.log('******************************')
-      console.log('******************************')
-      console.log('******************************')
-      console.log('******************************')
+      const tokenownroute = jwt.sign({hisownroutewillbesigned, user:"user1"},secretKey) // user2 is not user1 of users.user1 , is just for that
+
       console.log(tokenownroute)
-      console.log('-----------------------------------------')
-      console.log('------------------------------------------')
-      console.log('-----------------------------------------')
-      console.log('-----------------------------------------')
-      const tokenownroute12 = jwt.sign({hisownroutewillbesigned, user:"user2"},secretKey)
+
+      const tokenownroute12 = jwt.sign({hisownroutewillbesigned, user:"user2"},secretKey)  // user2 is not user2 of users.user2 , is just for that
       console.log(tokenownroute12)
-      var emailtodisplay = email + "(poste2)"
+      var emailtodisplay = email + "(poste2)" // editable , maybe we make a space
       console.log(emailtodisplay)
       var codepass1 = crypto.randomInt(10000000, 99999999);
       var codepass12 = crypto.randomInt(10000000, 99999999);
@@ -643,78 +661,32 @@ app.post('/acc/accessfromurlem',async (req, res) => {
       */
     });
     console.log('email_in_db')
-    console.log(email_in_db);
-      
+    //console.log(email_in_db);
+  var returnval = false;
   if (email_in_db) {
-    console.log('we are in emailindb')
-    if(email_in_db.users.user12){
-      console.log('we are in emailindb users.user1')
-      if (email_in_db.users.user12.email === email) {
-        var findemailinFields = email_in_db.users.user12;
-
-        res.status(200).json({'idusername_to_client_side':email_in_db.users.user12.idusername,
-                              'email':email_in_db.users.user12.email,
-                              'emailtodisplay':email_in_db.users.user12.email_to_display,
-                            
-                            });
-
-        console.log('Email found in users.user1.email');
-      } 
-      else if(email_in_db.users.user2){
-        console.log('we are in emailindb users.user2')
-        if (email_in_db.users.user2.email === email) {
-          var findemailinFields = email_in_db.users.user2;
-          console.log('Email found in users.user2.email');
-          res.status(200).json({'idusername_to_client_side':email_in_db.users.user2.idusername,
-          'email':email_in_db.users.user2.email,
-          'emailtodisplay':email_in_db.users.user2.email_to_display,
+    for(const userId in email_in_db.users){
+      if (email_in_db.users.hasOwnProperty(userId) && email_in_db.users[userId] && userId!=='user1') {
+        var theuser = email_in_db.users[userId];
+        console.log('theuser before if :')
+        console.log(userId)
+        //console.log(theuser)
+        if (theuser.email === email) {
+          console.log('email found in : theuser.email equal to email ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ ')
+          //console.log(theuser)
+          var returnval = true
+          res.status(200).json({'idusername_to_client_side':email_in_db.users[userId].idusername,
+          'email':email_in_db.users[userId].email,
+          'emailtodisplay':email_in_db.users[userId].email_to_display,
         });
-        }
-        else if(email_in_db.users.user3){
-          console.log('we are in emailindb users.user3')
-          if (email_in_db.users.user3.email === email) {
-            var findemailinFields = email_in_db.users.user3;
-            res.status(200).json({'idusername_to_client_side':email_in_db.users.user3.idusername,
-            'email':email_in_db.users.user3.email,
-            'emailtodisplay':email_in_db.users.user3.email_to_display,
-
-          });
-
-            console.log('Email found in users.user3.email');
-          } else {
-            console.log('findemailinFields will be null')
-            var findemailinFields =null
-            console.log('not found in any of them, user2 and user3 exist')
-            res.status(401).send('Authorization failed !!!.');        
-          }
-        } else {
-          console.log('not found in any of them, user2 exist and user3 no')
-          res.status(401).send('Authorization failed !!!.');        
+        console.log('Email found in users[userId].email');
+        break
         }
       }
-      else if(email_in_db.users.user3){
-        if (email_in_db.users.user3.email === email) {
-          var findemailinFields = email_in_db.users.user3;
-          res.status(200).json({'idusername_to_client_side':email_in_db.users.user3.idusername,
-          'email':email_in_db.users.user3.email,
-          'emailtodisplay':email_in_db.users.user3.email_to_display,
-        });
-
-          console.log('Email found in users.user3.email');
-        } else {
-          console.log('findemailinFields will be null')
-          var findemailinFields =null
-          console.log('not found in any of them, user2 and user3 exist')
-          res.status(401).send('Authorization failed !!!.');        
-        }
-      } else {
-        console.log('not found in any of them, user2 doesnt exist and user3 exist')
-        res.status(401).send('Authorization failed !!!.');        
-      }
-            } else {
-              console.log('not found in any of them, user2 doesnt exist and user3 exist')
-              res.status(401).send('Authorization failed !!!.');              
-            }
+ }
+ if(!returnval){
+  res.status(401).send('Authorization failed !!!.');        
+ }
+   
   } else {
     console.log('!email_in_db')
     res.status(401).send('Authorization failed !!!.');
@@ -755,61 +727,36 @@ app.post('/acc/accessfromurlcp',async (req, res) => {
   console.log('email :')
   console.log(email);
 
-
+  var findpassinFields = null;
   if (email_in_db) {
-    console.log('we are in emailindb')
-    if(email_in_db.users.user12){
-      console.log('we are in emailindb users.user1')
-      if (email_in_db.users.user12.email === email) {
-        var findpassinFields = email_in_db.users.user12;
-        console.log('Email found in users.user12.email');
-      } 
-      else if(email_in_db.users.user2){
-        console.log('we are in emailindb users.user2')
-        if (email_in_db.users.user2.email === email) {
-          var findpassinFields = email_in_db.users.user2;
-          console.log('Email found in users.user2.email');
+    for(const userId in email_in_db.users){
+      if (email_in_db.users.hasOwnProperty(userId) && email_in_db.users[userId] && userId!=='user1') {
+        var theuser = email_in_db.users[userId];
+        console.log('theuser before if :')
+        console.log(userId)
+        //console.log(theuser)
+        if (theuser.email === email) {
+          console.log('email found in : theuser.email equal to email ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ ')
+          //console.log(theuser)
+          var findpassinFields=email_in_db.users[userId]
+          console.log('Email found in users[userId].email');
+          break
         }
-        else if(email_in_db.users.user3){
-          console.log('we are in emailindb users.user3')
-          if (email_in_db.users.user3.email === email) {
-            var findpassinFields = email_in_db.users.user3;
-            console.log('Email found in users.user3.email');
-          } else {
-            console.log('findpassinFields will be null')
-            var findpassinFields =null      
-          }
-        }
-      } else if(email_in_db.users.user3){
-        console.log('we are in emailindb users.user3')
-        if (email_in_db.users.user3.email === email) {
-          var findpassinFields = email_in_db.users.user3;
-          console.log('Email found in users.user3.email');
-        } else {
-          console.log('findpassinFields will be null')
-          var findpassinFields =null      
-        }
-      } else {
-        console.log('findpassinFields will be null')
-        var findpassinFields =null      
       }
-
-    } else {
-      console.log('findpassinFields will be null')
-      var findpassinFields =null      
-    }
+ }
+   
   } else {
-    console.log('findpassinFields will be null')
-    var findpassinFields =null      
+    var findpassinFields = null
+    console.log('!email_in_db')
   }
 
   console.log('we are before condition of !email_in_db');
   //console.log(email_in_db.users)
   console.log(findpassinFields)
-  console.log(pinCode)
-  console.log(pinCodenotArray);
-  console.log(findpassinFields.pass);
-  console.log(email_in_db.users.user2);
+  //console.log(pinCode)
+  //console.log(pinCodenotArray);
+  //console.log(findpassinFields.pass);
+  //console.log(email_in_db.users.user2);
 
 
   if(!email_in_db){
@@ -833,7 +780,6 @@ app.post('/acc/accessfromurlcp',async (req, res) => {
     'hisownroute':email_in_db.hisownroute,
     'role':findpassinFields.role,
     'email_to_display':findpassinFields.email_to_display,
-
 
     //,'token_aftersuccesspass':findpassinFields.token
   });
@@ -867,93 +813,85 @@ app.post('/allowedemails',async (req, res) => {
       //var user_by_his_allowedemails = await MyModelMongoose.findOne({"users.user1.idusername":idusername});
       var user_by_his_allowedemails = await MyModelMongoose.findOne({"hisownroute":hisownroute});
 
-      console.log('user_by_his_allowedemails : ')
-      //console.log(user_by_his_allowedemails)
       var his_allowedemails2 = null;
       var his_allowedcode2 = null;
+      var his_allowedrole2 = null;
 
       var his_allowedemails3 = null;
       var his_allowedcode3 = null;
+      var his_allowedrole3 = null;
       
       var role_of_the_requestor = 'Viewer';
 
       var his_allowedemails12 = null;
       var his_allowedrole12 = null;
       var his_allowedcode12 = null;
+
+
       var emailslength = 2;
 
 
-      if(user_by_his_allowedemails){
-        
-        if(user_by_his_allowedemails.users.user1.idusername==idusername){
-          role_of_the_requestor=user_by_his_allowedemails.users.user1.role
-        } else if (user_by_his_allowedemails.users.user12.idusername==idusername){
-          role_of_the_requestor=user_by_his_allowedemails.users.user12.role
+      if (user_by_his_allowedemails) {
+        for(const userId in user_by_his_allowedemails.users){
+          if (user_by_his_allowedemails.users.hasOwnProperty(userId) && user_by_his_allowedemails.users[userId]) {
+            var theuser = user_by_his_allowedemails.users[userId];
+            console.log('theuser before if :')
+            console.log(userId)
+            //console.log(theuser)
+            if (theuser.idusername==idusername) {
+              console.log('email found in : theuser.email equal to email ')
+              //console.log(theuser)
+              role_of_the_requestor = user_by_his_allowedemails.users[userId].role
+              console.log('Email found in users[userId].role  RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR');
+              console.log(role_of_the_requestor)
+              break
+            }
+          }
+     }
 
-        } else if (user_by_his_allowedemails.users.user2){
-          if(user_by_his_allowedemails.users.user2.idusername==idusername){
-            role_of_the_requestor=user_by_his_allowedemails.users.user2.role  
+
+     for(const userId in user_by_his_allowedemails.users){
+      if (user_by_his_allowedemails.users.hasOwnProperty(userId) && user_by_his_allowedemails.users[userId] && userId!=='user1') {
+        var theuser = user_by_his_allowedemails.users[userId];
+        console.log('theuser before if :')
+        console.log(userId)
+        //console.log(theuser)
+
+        if(userId=='user2'){
+          var his_allowedemails2 = theuser.email;
+          var his_allowedrole2 = theuser.role;
+          var his_allowedcode2 = theuser.pass;
+          emailslength=emailslength+1;
+        } else if(userId=='user3'){
+          var his_allowedemails3 = theuser.email;
+          var his_allowedrole3 = theuser.role;
+          var his_allowedcode3 = theuser.pass;
+          emailslength=emailslength+1;
+
+        } else if (userId=='user12' && role_of_the_requestor=='Owner'){
+          var his_allowedemails12 = theuser.email;
+          var his_allowedrole12 = theuser.role;
+          var his_allowedcode12 = theuser.pass;
         }
-      } else if (user_by_his_allowedemails.users.user3){
-         if (user_by_his_allowedemails.users.user3.idusername==idusername){
-          role_of_the_requestor=user_by_his_allowedemails.users.user3.role
-       }
-      }      
-
-    if(role_of_the_requestor=='Owner' || role_of_the_requestor=='Admin'){
-      if( typeof user_by_his_allowedemails.users.user2 !== 'undefined' ){
-        var his_allowedemails2 = user_by_his_allowedemails.users.user2.email;
-        var his_allowedrole2 = user_by_his_allowedemails.users.user2.role;
-        var his_allowedcode2 = user_by_his_allowedemails.users.user2.pass;
-        emailslength=emailslength+1;
-      } else {
-        var his_allowedemails2 = null;
-        var his_allowedrole2 = null;
-        var his_allowedcode2 = null;
       }
-    
+ }
 
-      if(typeof user_by_his_allowedemails.users.user3 !== 'undefined'){
-        var his_allowedemails3 = user_by_his_allowedemails.users.user3.email;
-        var his_allowedrole3 = user_by_his_allowedemails.users.user3.role;
-        var his_allowedcode3 = user_by_his_allowedemails.users.user3.pass;
-        emailslength=emailslength+1;
-
+ res.status(200).json({
+  "user12":{"useremail":his_allowedemails12  ,"role":his_allowedrole12,  "code":his_allowedcode12},
+  "user2":{"useremail": his_allowedemails2,"role":his_allowedrole2,"code":his_allowedcode2},
+  "user3":{"useremail":his_allowedemails3,"role":his_allowedrole3,"code":his_allowedcode3} , 
+  "role_of_the_requestor":role_of_the_requestor,
+  "emailslength":emailslength
+}
+);
+       
       } else {
-        var his_allowedemails3 = null;
-        var his_allowedrole3 = null;
-        var his_allowedcode3 = null;
-      }
-    } else {
-      var his_allowedemails2 = null;
-      var his_allowedrole2 = null;
-      var his_allowedcode2 = null;
-      var his_allowedemails3 = null;
-      var his_allowedrole3 = null;
-      var his_allowedcode3 = null;
-    }
-  }
-  if(role_of_the_requestor!='Owner'){
-    var his_allowedemails12=null;
-    var his_allowedcode12 = null;
-    var his_allowedrole12 = null;
+        console.log('!user_by_his_allowedemails')
+        res.status(401).send('Authorization failed !!!.');
 
-  } else {
-    var his_allowedemails12 = user_by_his_allowedemails.users.user12.email_to_display;
-    var his_allowedcode12   = user_by_his_allowedemails.users.user12.pass;
-    var his_allowedrole12   = user_by_his_allowedemails.users.user12.role;
-  }
-  console.log('his_allowedcode3 ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::')
-  console.log(his_allowedcode3)
-      //var his_allowedemails3 = user_by_his_allowedemails.users.user3.email;
-      res.status(200).json({
-      "user12":{"useremail":his_allowedemails12  ,"role":his_allowedrole12,  "code":his_allowedcode12},
-      "user2":{"useremail": his_allowedemails2,"role":his_allowedrole2,"code":his_allowedcode2},
-      "user3":{"useremail":his_allowedemails3,"role":his_allowedrole3,"code":his_allowedcode3} , 
-      "role_of_the_requestor":role_of_the_requestor,
-      "emailslength":emailslength
-    }
-    );
+      }
+
+
     } else {
       res.status(401).send('Authorization failed !!!.');
     }
@@ -1004,7 +942,7 @@ app.post('/add',async (req, res) => {
         console.log(updatetoadduser)
         if(updatetoadduser==false){
           res.status(401).send('Adding to list is limited !!!.');
-        }
+        } // editable may be we have to add else 
         console.log('we will continue to resstatus200 :')
         console.log(new_email_added);
         res.status(200).json({'inputEmail':new_email_added,"codepass":updatetoadduser,"role":role_new_user});
@@ -1038,6 +976,7 @@ app.post('/removedemail',async (req, res) => {
       console.log('we are in the 200 request in removedemail')
      try{
       var role_of_the_requestor = 'Viewer';
+      var unsetField = null;
       const foundDoc = await MyModelMongoose.findOne({"hisownroute":currentrouteofurl});
       console.log(Object.keys(foundDoc.users).length)
 
@@ -1051,74 +990,73 @@ app.post('/removedemail',async (req, res) => {
       */
       console.log('**************')
       //console.log(foundDoc.users)
-      if (foundDoc) {
-        if(foundDoc.users.user1.idusername==idusername || foundDoc.users.user12.idusername==idusername){
-          role_of_the_requestor='Owner'
-        } else if(foundDoc.users.user2){
-            if(foundDoc.users.user2.idusername==idusername){
-              role_of_the_requestor = foundDoc.users.user2.role;
-            }
-        } else if(foundDoc.users.user3){
-            if(foundDoc.users.user3.idusername==idusername){
-            role_of_the_requestor = foundDoc.users.user3.role;
-          }
-        }
-        if(role_of_the_requestor!=='Owner' && role_of_the_requestor!=='Admin'){
-          return res.status(500).send('role of the requestor cannot remove !');
-        }
 
-
-
-        if(foundDoc.users.user2){
-          if(foundDoc.users.user2.email==emailremoved){
-            var unsetField = 'users.user2'
-          } else if(foundDoc.users.user3){
-              if(foundDoc.users.user3.email==emailremoved){
-                var unsetField = 'users.user3'
-              }
-            } else {
-              var unsetField = null
-            }
-        } else if (foundDoc.users.user3){
-          if(foundDoc.users.user3.email==emailremoved){
-            var unsetField = 'users.user3'
-          } else {
-            var unsetField = null
-          }
-        } else {
-          var unsetField = null
-        }
-
-        //var unsetField = foundDoc.users.user2 ? (foundDoc.users.user2.email === emailremoved ? 'users.user2' : 'users.user3') : (foundDoc.users.user3 ? (foundDoc.users.user3.email === emailremoved ? 'users.user3' : null) : null  )   ;
-        console.log('unsetField :')
-        console.log(unsetField);
-
-        if(unsetField){
-        // Now update the document to unset the field determined above
-        const updatedDoc_removed = await MyModelMongoose.findOneAndUpdate(
-          { _id: foundDoc._id }, // Assuming you have an _id field in your schema
-          { $unset: { [unsetField]: 1 } },
-          { new: true }
-        );
+      if(foundDoc) {
       
-        if (updatedDoc_removed) {
-          var emailslengthbeforeremoved = Object.keys(foundDoc.users).length
-          console.log('Updated document:');
-          res.status(200).json({"emailslength":emailslengthbeforeremoved-1})
-          //res.status(200).send('Document updated');
-        } else {
-          console.log('Failed to update the document.');
-          res.status(500).send('Failed to update the document');
+        for(const userId in foundDoc.users){
+          if (foundDoc.users.hasOwnProperty(userId) && foundDoc.users[userId]) {
+            var theuser = foundDoc.users[userId];
+            console.log('theuser before if :')
+            console.log(userId)
+            //console.log(theuser)
+            if (theuser.idusername==idusername) {
+              console.log('email found in : theuser.email equal to email ')
+              //console.log(theuser)
+              role_of_the_requestor = foundDoc.users[userId].role
+              console.log('Email found in users[userId].role  RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR');
+              console.log(role_of_the_requestor)
+              break
+            }
+          }
+     }
+     if(role_of_the_requestor!=='Owner' && role_of_the_requestor!=='Admin'){
+      return res.status(500).send('role of the requestor cannot remove !');
+    }
+
+    for(const userId in foundDoc.users){
+      if (foundDoc.users.hasOwnProperty(userId) && foundDoc.users[userId]) {
+        var theuser = foundDoc.users[userId];
+        console.log('theuser before if :')
+        console.log(userId)
+        //console.log(theuser)
+        if (theuser.email==emailremoved) {
+          console.log('email found in : theuser.email equal to email ')
+          //console.log(theuser)
+          var unsetField = 'users.'+userId.toString();
+          console.log('unsetField in remove emails')
+          console.log(unsetField)
+          break
         }
-      } else {
-        console.log('Document not found!!!!!!.');
-        res.status(404).send('Document not found');   
       }
+ }
+
+ if(unsetField){
+  // Now update the document to unset the field determined above
+  const updatedDoc_removed = await MyModelMongoose.findOneAndUpdate(
+    { _id: foundDoc._id }, // Assuming you have an _id field in your schema
+    { $unset: { [unsetField]: 1 } },
+    { new: true }
+  );
+
+  if (updatedDoc_removed) {
+    var emailslengthbeforeremoved = Object.keys(foundDoc.users).length
+    console.log('Updated document:');
+    res.status(200).json({"emailslength":emailslengthbeforeremoved-1})
+    //res.status(200).send('Document updated');
+  } else {
+    console.log('Failed to update the document.');
+    res.status(500).send('Failed to update the document');
+  }
+ } else {
+  console.log('Document not found!!!!!!.');
+  res.status(404).send('Document not found');   
+}
+
       } else {
         console.log('no email to remove');
         res.status(404).send('no email to remove ');
       }
-      
+
   } catch (error) {
     console.error("Error updating user:", error);
     res.status(400).send('Authorization failed !!!.');

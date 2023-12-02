@@ -36,6 +36,10 @@ const MySchema = new Schema({
     user12: userSchema_owner,
     user2: userSchema_teammate,
     user3: userSchema_teammate,
+
+    user4: userSchema_teammate,
+    user5: userSchema_teammate
+
     
   },
 }, { collection: 'spreadsheet' });
