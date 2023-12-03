@@ -163,12 +163,25 @@ const update_to_add_user = async (email_owner, new_email_of_user,role_new_user,m
 
       const filter2byroute = {"hisownroute":route}
       var requestor_role = 'Viewer'
+      var alreadyadded = 'notalreadyadded'
       // Find the document that matches the filter
 
       //const document = await MyModelMongoose.findOne(filter);
       const document = await MyModelMongoose.findOne(filter2byroute);
       if(document && document.users) {
 
+        for(const userId in document.users){
+          if (document.users.hasOwnProperty(userId) && document.users[userId]) {
+            var theuser = document.users[userId];
+            if (theuser.email==new_email_of_user) {
+              alreadyadded='alreadyadded'
+              break
+            }
+          }
+        }
+        if(alreadyadded=='alreadyadded'){
+          return alreadyadded
+        }
 
         for(const userId in document.users){
           if (document.users.hasOwnProperty(userId) && document.users[userId]) {
@@ -186,6 +199,7 @@ const update_to_add_user = async (email_owner, new_email_of_user,role_new_user,m
             }
           }
      }
+
      var hisownroutewillbesigned = document.hisownroute;
      var tokenownroute = jwt.sign({hisownroutewillbesigned},secretKey);
      console.log('tokenownroute in accessfromurlcp verifiying pass ')
@@ -877,7 +891,7 @@ app.post('/allowedemails',async (req, res) => {
           emailslength=emailslength+1;
 
         } else if (userId=='user12' && role_of_the_requestor=='Owner'){
-          var his_allowedemails12 = theuser.email;
+          var his_allowedemails12 = theuser.email_to_display;
           var his_allowedrole12 = theuser.role;
           var his_allowedcode12 = theuser.pass;
 
@@ -952,6 +966,9 @@ app.post('/add',async (req, res) => {
       console.log('recaptcha add sucess')
       const myCookie_token_in_add = req.cookies['jwtTokentableur'];  /// Replace 'myCookieName' with your actual cookie name
       const decoded_add = jwt.verify(myCookie_token_in_add, secretKey);
+
+      const myCookie_token_hisownroute_in_add = req.cookies['jwtTokentableurhisownroute']; 
+      const decoded_jwtcookiehisownroute_add = jwt.verify(myCookie_token_hisownroute_in_add, secretKey);  
       
       if( role_new_user!='Admin' && role_new_user!='Writer' && role_new_user!='Viewer' ){
         res.status(400).send('Authentication failed !!!.');
@@ -963,13 +980,18 @@ app.post('/add',async (req, res) => {
         console.log('decoded verification failed')
 
         res.status(401).send('Authentication incorrect !!!.');
+      } if (Object.values(decoded_jwtcookiehisownroute_add)[0] !== route) {
+        console.log('***************************** route incorrect ::::::::::::::::::::')
+        res.status(401).send('Authentication incorrect !!!.');
       } else {
         console.log('add part success')
         var updatetoadduser = await update_to_add_user(email_owner,new_email_added,role_new_user,myCookie_token_in_add,route,username_owner);
         updatetoadduser
         console.log('updatetoadduser !!!!!!!!!!!!!!!!!!!!!!!')
         console.log(updatetoadduser)
-        if(updatetoadduser==false){
+        if(updatetoadduser=='alreadyadded'){
+          res.status(500).send('Adding to list is limited !!!.');
+        } else if(updatetoadduser==false){
           res.status(401).send('Adding to list is limited !!!.');
         } // editable may be we have to add else 
         console.log('we will continue to resstatus200 :')
@@ -1226,22 +1248,22 @@ app.post('/users_roles_navbar',async (req,res)=>{
     }
 
     var user_by_route = await MyModelMongoose.findOne({"hisownroute":hisownroute});
-
+    
     if(!user_by_route){
       return res.status(400).json({ message: 'Forbidden' });
     } else {
       if(user_by_route.users.user1.idusername==username){
         return res.status(200).json({"role":user_by_route.users.user1.role})
-      } else if(user_by_route.users.user12.idusername==username){
+      } else if(user_by_route.users.user12 && user_by_route.users.user12.idusername==username){
           return res.status(200).json({"role":user_by_route.users.user12.role})
-      } else if(user_by_route.users.user2.idusername==username){
+      } else if(user_by_route.users.user2 &&  user_by_route.users.user2.idusername==username){
         return res.status(200).json({"role":user_by_route.users.user2.role})
-      } else if(user_by_route.users.user3.idusername==username){
+      } else if(user_by_route.users.user3 && user_by_route.users.user3.idusername==username){
         return res.status(200).json({"role":user_by_route.users.user3.role})
 
-      } else if(user_by_route.users.user4.idusername==username){ // editable nb users if we want to remove user4 or user5
+      } else if(user_by_route.users.user4 && user_by_route.users.user4.idusername==username){ // editable nb users if we want to remove user4 or user5
         return res.status(200).json({"role":user_by_route.users.user4.role})
-      }else if(user_by_route.users.user5.idusername==username){ // editable nb users if we want to remove user4 or user5
+      }else if(user_by_route.users.user5 && user_by_route.users.user5.idusername==username){ // editable nb users if we want to remove user4 or user5
         return res.status(200).json({"role":user_by_route.users.user5.role})
       } else {
         res.status(400).json({message:'username doesnt exist '})
