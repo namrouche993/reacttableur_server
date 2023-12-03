@@ -117,8 +117,8 @@ const updateByUsername = async (username, newData) => {
           { "users.user2.idusername": username },
           { "users.user3.idusername": username },
 
-          { "users.user4.idusername": username },
-          { "users.user5.idusername": username }
+          { "users.user4.idusername": username }, // editable nb users if we want to remove user4 or user5
+          { "users.user5.idusername": username } // editable nb users if we want to remove user4 or user5
 
         ]
       },
@@ -224,13 +224,13 @@ const update_to_add_user = async (email_owner, new_email_of_user,role_new_user,m
           }
         }
 
-        /*  // editable when we want to change the nb of users , let this and remove user4 and users5
+        /*  // editable when we want to change the nb of users , let this and remove user4 and users5 // editable nb users if we want to remove user4 or user5
         else { 
           console.log('user2 and user3 existed , so do nothing')
           return false
         }
         */
-      } else if (!document.users.user4){  // editable when we want to change the nb of users 
+      } else if (!document.users.user4){  // // editable nb users if we want to remove user4 or user5 // editable nb users if we want to remove user4 or user5
         var update = {
           $set: {
             "users.user4.idusername": idusername_from_generated,
@@ -244,7 +244,7 @@ const update_to_add_user = async (email_owner, new_email_of_user,role_new_user,m
             // Add more fields or update operations as needed
           }
         }
-      } else if (!document.users.user5){  // editable when we want to change the nb of users 
+      } else if (!document.users.user5){  // // editable nb users if we want to remove user4 or user5 // editable nb users if we want to remove user4 or user5
         var update = {
           $set: {
             "users.user5.idusername": idusername_from_generated,
@@ -409,9 +409,8 @@ console.log('we will enter in try')
     
     ( user_by_route.users.user2 && user_by_route.users.user2.token == myCookie_token && user_by_route.users.user2.idusername==Object.values(decoded_in_ownenter)[0] ) || //decoded_in_ownenter.newidusername
     ( user_by_route.users.user3 && user_by_route.users.user3.token == myCookie_token && user_by_route.users.user3.idusername==Object.values(decoded_in_ownenter)[0] ) || //decoded_in_ownenter.newidusername
-    ( user_by_route.users.user4 && user_by_route.users.user4.token == myCookie_token && user_by_route.users.user4.idusername==Object.values(decoded_in_ownenter)[0] ) || //decoded_in_ownenter.newidusername
-    ( user_by_route.users.user5 && user_by_route.users.user5.token == myCookie_token && user_by_route.users.user5.idusername==Object.values(decoded_in_ownenter)[0] )   //decoded_in_ownenter.newidusername
-
+    ( user_by_route.users.user4 && user_by_route.users.user4.token == myCookie_token && user_by_route.users.user4.idusername==Object.values(decoded_in_ownenter)[0] ) || // editable nb users if we want to remove user4 or user5 // editable nb users if we want to remove user4 or user5
+    ( user_by_route.users.user5 && user_by_route.users.user5.token == myCookie_token && user_by_route.users.user5.idusername==Object.values(decoded_in_ownenter)[0] )   // editable nb users if we want to remove user4 or user5 // editable nb users if we want to remove user4 or user5
     ) {
     console.log('4cond')
     //console.log(user_by_route.dataa)
@@ -473,8 +472,8 @@ app.post('/tab/enter', async (req, res) => {
             { "users.user2.idusername": idusername },
             { "users.user3.idusername": idusername },
 
-            { "users.user4.idusername": idusername },
-            { "users.user5.idusername": idusername }
+            { "users.user4.idusername": idusername }, // editable nb users if we want to remove user4 or user5
+            { "users.user5.idusername": idusername } // editable nb users if we want to remove user4 or user5
 
           ]
         }
@@ -812,6 +811,8 @@ app.post('/allowedemails',async (req, res) => {
       console.log('we are in the 200 request in allowedemails')
       //var user_by_his_allowedemails = await MyModelMongoose.findOne({"users.user1.idusername":idusername});
       var user_by_his_allowedemails = await MyModelMongoose.findOne({"hisownroute":hisownroute});
+      
+      var role_of_the_requestor = 'Viewer';
 
       var his_allowedemails2 = null;
       var his_allowedcode2 = null;
@@ -821,11 +822,18 @@ app.post('/allowedemails',async (req, res) => {
       var his_allowedcode3 = null;
       var his_allowedrole3 = null;
       
-      var role_of_the_requestor = 'Viewer';
 
       var his_allowedemails12 = null;
       var his_allowedrole12 = null;
       var his_allowedcode12 = null;
+
+      var his_allowedemails4 = null;
+      var his_allowedcode4 = null;
+      var his_allowedrole4 = null;
+
+      var his_allowedemails5 = null;
+      var his_allowedcode5 = null;
+      var his_allowedrole5 = null;
 
 
       var emailslength = 2;
@@ -872,14 +880,35 @@ app.post('/allowedemails',async (req, res) => {
           var his_allowedemails12 = theuser.email;
           var his_allowedrole12 = theuser.role;
           var his_allowedcode12 = theuser.pass;
+
+        } else if(userId=='user4'){ // editable nb users if we want to remove user4 or user5
+          var his_allowedemails4 = theuser.email;
+          var his_allowedrole4 = theuser.role;
+          var his_allowedcode4 = theuser.pass;
+          emailslength=emailslength+1;
+        }
+        else if(userId=='user5'){ // editable nb users if we want to remove user4 or user5
+          var his_allowedemails5 = theuser.email;
+          var his_allowedrole5 = theuser.role;
+          var his_allowedcode5 = theuser.pass;
+          emailslength=emailslength+1;
+
         }
       }
  }
+ console.log('user5 :')
+ console.log(his_allowedemails5)
+ console.log(his_allowedrole5)
+ console.log(his_allowedcode5)
 
  res.status(200).json({
   "user12":{"useremail":his_allowedemails12  ,"role":his_allowedrole12,  "code":his_allowedcode12},
   "user2":{"useremail": his_allowedemails2,"role":his_allowedrole2,"code":his_allowedcode2},
   "user3":{"useremail":his_allowedemails3,"role":his_allowedrole3,"code":his_allowedcode3} , 
+  
+  "user4":{"useremail":his_allowedemails4,"role":his_allowedrole4,"code":his_allowedcode4} , // editable nb users if we want to remove user4 or user5
+  "user5":{"useremail":his_allowedemails5,"role":his_allowedrole5,"code":his_allowedcode5} , // editable nb users if we want to remove user4 or user5
+
   "role_of_the_requestor":role_of_the_requestor,
   "emailslength":emailslength
 }
@@ -1209,6 +1238,11 @@ app.post('/users_roles_navbar',async (req,res)=>{
         return res.status(200).json({"role":user_by_route.users.user2.role})
       } else if(user_by_route.users.user3.idusername==username){
         return res.status(200).json({"role":user_by_route.users.user3.role})
+
+      } else if(user_by_route.users.user4.idusername==username){ // editable nb users if we want to remove user4 or user5
+        return res.status(200).json({"role":user_by_route.users.user4.role})
+      }else if(user_by_route.users.user5.idusername==username){ // editable nb users if we want to remove user4 or user5
+        return res.status(200).json({"role":user_by_route.users.user5.role})
       } else {
         res.status(400).json({message:'username doesnt exist '})
       }
