@@ -156,7 +156,7 @@ const update_to_add_user = async (email_owner, new_email_of_user,role_new_user,m
 
     try {
       
-      const filter = {
+      const filter = { // useless
         "users.user1.email": email_owner,
         "users.user1.token":myCookie_token_in_add
       };
@@ -218,7 +218,8 @@ const update_to_add_user = async (email_owner, new_email_of_user,role_new_user,m
             //"users.user2.owner": false,
             "users.user2.role":role_new_user,
             "users.user2.pass": codepass,
-            "users.user2.hisownroutetoken":tokenownroute
+            "users.user2.hisownroutetoken":tokenownroute,
+            "users.user2.used":false
             // Add more fields or update operations as needed
           }
         }
@@ -233,7 +234,9 @@ const update_to_add_user = async (email_owner, new_email_of_user,role_new_user,m
             //"users.user3.owner": false,
             "users.user3.role":role_new_user,
             "users.user3.pass": codepass,
-            "users.user3.hisownroutetoken":tokenownroute
+            "users.user3.hisownroutetoken":tokenownroute,
+            "users.user3.used":false
+
             // Add more fields or update operations as needed
           }
         }
@@ -254,7 +257,9 @@ const update_to_add_user = async (email_owner, new_email_of_user,role_new_user,m
             //"users.user4.owner": false,
             "users.user4.role":role_new_user,
             "users.user4.pass": codepass,
-            "users.user4.hisownroutetoken":tokenownroute
+            "users.user4.hisownroutetoken":tokenownroute,
+            "users.user4.used":false
+
             // Add more fields or update operations as needed
           }
         }
@@ -268,7 +273,9 @@ const update_to_add_user = async (email_owner, new_email_of_user,role_new_user,m
             //"users.user5.owner": false,
             "users.user5.role":role_new_user,
             "users.user5.pass": codepass,
-            "users.user5.hisownroutetoken":tokenownroute
+            "users.user5.hisownroutetoken":tokenownroute,
+            "users.user5.used":false
+
             // Add more fields or update operations as needed
           }
         }
@@ -319,6 +326,12 @@ try {
   
   const receivedData = JSON.parse(req.body.jsonData_whenclosed); //JSON.parse(req.body) ;!!!!!!!::
   const receivedUsername = req.body.idusername00;
+
+  // const navigator_laguage_updated = req.body.navigator_laguage_updated;
+  // const userlocale_updated = req.body.userlocale_updated;
+  // const decimalseparator_updated = req.body.decimalseparator_updated;
+
+  
   console.log('receivedUsername')
   console.log(receivedUsername)
 
@@ -370,7 +383,7 @@ try {
 }
 
 } catch (error) {
- console.log('error : ' + error) 
+ console.log('error beacondataaaaaaaaaaaaaaaaa  : ' + error) 
 }
 });
 
@@ -385,7 +398,21 @@ app.post('/tab/saveData',(req,res)=>{ // editable to remove , not nessecary
 
 app.post('/tab/ownenter', async (req, res) => {
   console.log('we are in tab/ownenter  ::: ')
-  const {ownroute} = req.body;
+  const {
+    ownroute,
+    
+    navigator_laguage_of_browser,
+    userlocale_of_browser,
+    decimalseparator_of_browser,
+
+    navigator_laguage_updated,
+    userlocale_updated,
+    decimalseparator_updated
+    
+
+  
+  
+  } = req.body;
   //console.log(ownroute)
   var user_by_route = await MyModelMongoose.findOne({"hisownroute":ownroute});
   //var userr = await MyModelMongoose.findOne({"phoneNumber_owner":"077775566"})
@@ -417,26 +444,53 @@ console.log('we will enter in try')
       const decoded_in_ownenter = jwt.verify(myCookie_token, secretKey);
       console.log('decoded_in_ownenter')
      // console.log(decoded_in_ownenter)
-    if (
-    user_by_route.users.user1.token == myCookie_token && user_by_route.users.user1.idusername==Object.values(decoded_in_ownenter)[0] || //decoded_in_ownenter.newidusername
-    user_by_route.users.user12.token == myCookie_token && user_by_route.users.user12.idusername==Object.values(decoded_in_ownenter)[0] || //decoded_in_ownenter.newidusername
-    
-    ( user_by_route.users.user2 && user_by_route.users.user2.token == myCookie_token && user_by_route.users.user2.idusername==Object.values(decoded_in_ownenter)[0] ) || //decoded_in_ownenter.newidusername
-    ( user_by_route.users.user3 && user_by_route.users.user3.token == myCookie_token && user_by_route.users.user3.idusername==Object.values(decoded_in_ownenter)[0] ) || //decoded_in_ownenter.newidusername
-    ( user_by_route.users.user4 && user_by_route.users.user4.token == myCookie_token && user_by_route.users.user4.idusername==Object.values(decoded_in_ownenter)[0] ) || // editable nb users if we want to remove user4 or user5 // editable nb users if we want to remove user4 or user5
-    ( user_by_route.users.user5 && user_by_route.users.user5.token == myCookie_token && user_by_route.users.user5.idusername==Object.values(decoded_in_ownenter)[0] )   // editable nb users if we want to remove user4 or user5 // editable nb users if we want to remove user4 or user5
-    ) {
-    console.log('4cond')
-    //console.log(user_by_route.dataa)
-   // console.log(user_by_route.dataa)
-    console.log(user_by_route.phoneNumber_owner)
-    res.json({"organisme":user_by_route.organisme,
-              "region":user_by_route.region,
-             "dataa":user_by_route.dataa})
-  } else {
-    console.log('5cond')
-    res.status(401).send('Authentication failed !!!.');
-  }
+     var returniffalse = false;
+
+     for(const userId in user_by_route.users){
+      if (user_by_route.users.hasOwnProperty(userId) && user_by_route.users[userId]) {
+        var theuser = user_by_route.users[userId];
+        console.log('theuser before if :')
+        console.log(userId)
+        
+        //console.log(theuser)
+        if (theuser.token === myCookie_token && user_by_route.users[userId].idusername==Object.values(decoded_in_ownenter)[0]) {
+          
+          console.log('email found in : theuser.email equal to email ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ ')
+          //console.log(theuser)
+        console.log('Email found in users[userId].email');
+        console.log('4cond')
+        //console.log(user_by_route.dataa)
+       // console.log(user_by_route.dataa)
+        console.log(user_by_route.phoneNumber_owner)
+        returniffalse = true;
+        console.log('*******************---------------------------------------************')
+        var userinset = "users."+userId+".used";
+        user_by_route.users[userId].used=true
+
+        user_by_route.users[userId].navigator_laguage_of_browser=navigator_laguage_of_browser; //navigator_language2 in initials_inputs
+        user_by_route.users[userId].userlocale_of_browser=userlocale_of_browser; //userLocale2 in initials_inputs
+        user_by_route.users[userId].decimalseparator_of_browser=decimalseparator_of_browser; //userLocale2 in initials_inputs
+        
+        user_by_route.users[userId].navigator_laguage_updated=navigator_laguage_updated;
+        user_by_route.users[userId].userlocale_updated=userlocale_updated;
+        user_by_route.users[userId].decimalseparator_updated=decimalseparator_updated; 
+
+        
+        await user_by_route.save();
+
+        res.json({"organisme":user_by_route.organisme,
+                  "region":user_by_route.region,
+                 "dataa":user_by_route.dataa})
+        break
+        }
+      }
+    }
+ 
+  if(returniffalse==false) {
+  console.log('5cond')
+  res.status(401).send('Authentication failed !!!.');
+ }
+
 } else {
   console.log('6cond')
   res.status(401).send('Authentication failed !!!.');
@@ -513,8 +567,16 @@ app.post('/tab/enter', async (req, res) => {
 app.post('/tab/login', async (req, res) => {
   console.log('we will call tab/login nnnnnnnnnnnnnnnnnnnnnnn'); //aa
   const tokenRecaptcha = req.body.recaptchaToken;
+  const navigator_laguage_of_browser = req.body.navigator_laguage_of_browser;
+  const userlocale_of_browser = req.body.userlocale_of_browser;
+  const decimalseparator_of_browser = req.body.decimalseparator_of_browser;
+
+  //const { organisme, region,email,phoneNumber,tokenRecaptcha,navigator_laguage_of_browser } = req.body;
+
   console.log('tokenRecaptcha :')
   console.log(tokenRecaptcha)
+  console.log(navigator_laguage_of_browser)
+
   
   const verifyUrlRecaptcha = `https://www.google.com/recaptcha/api/siteverify?secret=${RECAPTCHA_SECRET_KEY}&response=${tokenRecaptcha}`;
   console.log(verifyUrlRecaptcha);
@@ -528,9 +590,11 @@ app.post('/tab/login', async (req, res) => {
     if (dataRecaptcha.success) {
       //res.status(200).json({ success: true, message: 'reCAPTCHA verification successful' });!!
 
-      const { organisme, region,email,phoneNumber } = req.body;
+       const { organisme, region,email,phoneNumber } = req.body;
+      
       var idusername_from_generated = generateRandomString(14,false);
       var idusername_from_generated_12 = generateRandomString(14,false);
+
 
       console.log(idusername_from_generated)
       var dataa_inital = ddatafct00(last_row_after_header)//retreived_data;
@@ -593,8 +657,18 @@ app.post('/tab/login', async (req, res) => {
           "users.user1.role":"Owner",
           "users.user1.pass":  codepass1, //generateRandomString(6,true), // maybe editable when changing string to numbers
           "users.user1.hisownroutetoken":tokenownroute,
-          "users.user1.email_to_display":email,          
+          "users.user1.email_to_display":email,
+          "users.user1.used":true,
 
+          "users.user1.navigator_laguage_of_browser":navigator_laguage_of_browser,
+          "users.user1.userlocale_of_browser":userlocale_of_browser,
+          "users.user1.decimalseparator_of_browser":decimalseparator_of_browser,
+
+          "users.user1.navigator_laguage_updated":navigator_laguage_of_browser,
+          "users.user1.userlocale_updated":userlocale_of_browser,
+          "users.user1.decimalseparator_updated":decimalseparator_of_browser,
+
+          
 
           "users.user12.idusername":idusername_from_generated_12,
           "users.user12.email":email,
@@ -602,7 +676,18 @@ app.post('/tab/login', async (req, res) => {
           "users.user12.role":"Owner",
           "users.user12.pass":codepass12,  //generateRandomString(6,true), // maybe editable when changing string to numbers
           "users.user12.hisownroutetoken":tokenownroute12,
-          "users.user12.email_to_display":emailtodisplay
+          "users.user12.email_to_display":emailtodisplay,
+          "users.user12.used":false,
+
+          "users.user12.navigator_laguage_of_browser":navigator_laguage_of_browser,
+          "users.user12.userlocale_of_browser":userlocale_of_browser,
+          "users.user12.decimalseparator_of_browser":decimalseparator_of_browser,
+
+          "users.user12.navigator_laguage_updated":navigator_laguage_of_browser,
+          "users.user12.userlocale_updated":userlocale_of_browser,
+          "users.user12.decimalseparator_updated":decimalseparator_of_browser,
+
+
 
         });
         console.log('newRecord before:')
@@ -682,15 +767,19 @@ app.post('/acc/accessfromurlem',async (req, res) => {
         var theuser = email_in_db.users[userId];
         console.log('theuser before if :')
         console.log(userId)
-        //console.log(theuser)
         if (theuser.email === email) {
           console.log('email found in : theuser.email equal to email ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ ')
           //console.log(theuser)
           var returnval = true
+          if(email_in_db.users[userId].used==true){
+            console.log('email already used and we will call status 402')
+            res.status(402).send('Email already used')
+          } else {
           res.status(200).json({'idusername_to_client_side':email_in_db.users[userId].idusername,
           'email':email_in_db.users[userId].email,
           'emailtodisplay':email_in_db.users[userId].email_to_display,
         });
+      }
         console.log('Email found in users[userId].email');
         break
         }
@@ -1424,7 +1513,14 @@ if (socketsInTargetRoom) {
       socket.join(namespace);
       io.to(namespace).emit('listingusers', usersList[namespace]);
     });
-  
+
+    socket.on('change_numericformat',(data)=>{
+      socket.join(namespace)
+      //io.to(namespace).emit('change_numericformat',data)
+      //socket.broadcast.emit('inputUpdated', data);
+      socket.broadcast.to(namespace).emit('change_numericformat',data)
+
+    })
   
     socket.on('disconnect', () => {
       updatedUsersList.namespace = usersList[namespace].filter(user => user !== email_from_query_to_display);

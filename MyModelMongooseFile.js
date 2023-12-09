@@ -10,7 +10,18 @@ const userSchema_owner = new Schema({
   //owner: {required:true,type:Boolean},
   role : {required:true,type:String,default:'Owner',immutable:true},
   hisownroutetoken:{required:true,type:String},
-  email_to_display: {required:true,type:String}
+  email_to_display: {required:true,type:String},
+  used:{required:true,type:Boolean},
+
+  navigator_laguage_of_browser:{required:true,type:'String'}, //navigator_language2 in initials_inputs
+  userlocale_of_browser:{required:true,type:'String'}, //userLocale2 in initials_inputs
+  decimalseparator_of_browser:{required:true,type:'String'}, //decimalSeparator2 in initials_inputs
+
+  navigator_laguage_updated:{required:true,type:'String'}, 
+  userlocale_updated:{required:true,type:'String'},
+  decimalseparator_updated:{required:true,type:'String'}, 
+
+
 });
 
 const userSchema_teammate = new Schema({
@@ -21,7 +32,17 @@ const userSchema_teammate = new Schema({
   //owner: {required:false,type:Boolean},
   role : {required:false,type:String,   enum:["Admin","Writer","Viewer"]},
   hisownroutetoken:{required:false,type:String},
-  email_to_display: {required:false,type:String}
+  email_to_display: {required:false,type:String},
+  used:{required:false,type:Boolean},
+
+  navigator_laguage_of_browser:{required:false,type:'String'}, //navigator_language2 in initials_inputs
+  userlocale_of_browser:{required:false,type:'String'}, //userLocale2 in initials_inputs
+  decimalseparator_of_browser:{required:false,type:'String'}, //decimalSeparator2 in initials_inputs
+
+  navigator_laguage_updated:{required:false,type:'String'}, 
+  userlocale_updated:{required:false,type:'String'},
+  decimalseparator_updated:{required:false,type:'String'}, 
+
 
 });
 
