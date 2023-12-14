@@ -590,7 +590,7 @@ app.post('/tab/login', async (req, res) => {
     if (dataRecaptcha.success) {
       //res.status(200).json({ success: true, message: 'reCAPTCHA verification successful' });!!
 
-       const { organisme, region,email,phoneNumber } = req.body;
+       const { organisme, region,email,phoneNumber, } = req.body;
       
       var idusername_from_generated = generateRandomString(14,false);
       var idusername_from_generated_12 = generateRandomString(14,false);
@@ -652,6 +652,11 @@ app.post('/tab/login', async (req, res) => {
           "users.user1.email":email,
           "phoneNumber_owner":phoneNumber,
           "hisownroute":hisownroute,
+
+          "navigator_laguage_db":navigator_laguage_of_browser,
+          "userlocale_db":userlocale_of_browser,
+          "decimalseparator_db":decimalseparator_of_browser,
+
           "users.user1.token":token,
           //"users.user1.owner":true,
           "users.user1.role":"Owner",
@@ -882,6 +887,10 @@ app.post('/acc/accessfromurlcp',async (req, res) => {
     'hisownroute':email_in_db.hisownroute,
     'role':findpassinFields.role,
     'email_to_display':findpassinFields.email_to_display,
+
+    "navigator_laguage_of_owner":email_in_db.navigator_laguage_db,
+    "userlocale_of_owner":email_in_db.userlocale_db,
+    "decimalseparator_of_owner":email_in_db.decimalseparator_db
 
     //,'token_aftersuccesspass':findpassinFields.token
   });
@@ -1366,6 +1375,41 @@ app.post('/users_roles_navbar',async (req,res)=>{
 
   }
 
+
+})
+
+app.post('/changeformat',async (req,res)=>{
+  console.log('we are in changeformat')
+  try {
+    const {currentrouteofurl,username} = req.body;
+    const myCookie_token_in_changeformat = req.cookies['jwtTokentableur'];  
+    const myCookie_token_hisownroute_in_changeformat = req.cookies['jwtTokentableurhisownroute']; 
+
+    const decoded_in_changeformat = jwt.verify(myCookie_token_in_changeformat, secretKey);
+
+    if (username==undefined){
+      return res.status(402).json({message:'new'})
+    }
+    if (Object.values(decoded_in_changeformat)[0] !== username) {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
+
+    const decoded_jwtcookiehisownroute_in_changeformat = jwt.verify(myCookie_token_hisownroute_in_changeformat, secretKey);  
+    if (Object.values(decoded_jwtcookiehisownroute_in_changeformat)[0] !== currentrouteofurl ) {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
+
+    var user_by_route_in_changeformat = await MyModelMongoose.findOne({"hisownroute":currentrouteofurl});
+    
+    if(!user_by_route_in_changeformat){
+      return res.status(400).json({ message: 'Forbidden' });
+    } else {
+
+    }
+    
+  } catch (error) {
+    
+  }
 
 })
 

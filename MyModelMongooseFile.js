@@ -52,6 +52,12 @@ const MySchema = new Schema({
   phoneNumber_owner: {required:true,type:String},
   hisownroute: {required:true,type:String},
   dataa: {required:true,type:Array},
+
+  navigator_laguage_db:{required:true,type:'String'}, 
+  userlocale_db:{required:true,type:'String'},
+  decimalseparator_db:{required:true,type:'String'}, 
+
+
   users: {
     user1: userSchema_owner,
     user12: userSchema_owner,
