@@ -401,6 +401,7 @@ app.post('/tab/ownenter', async (req, res) => {
   const {
     ownroute,
     
+    /*
     navigator_laguage_of_browser,
     userlocale_of_browser,
     decimalseparator_of_browser,
@@ -408,9 +409,8 @@ app.post('/tab/ownenter', async (req, res) => {
     navigator_laguage_updated,
     userlocale_updated,
     decimalseparator_updated
+    */
     
-
-  
   
   } = req.body;
   //console.log(ownroute)
@@ -467,6 +467,7 @@ console.log('we will enter in try')
         var userinset = "users."+userId+".used";
         user_by_route.users[userId].used=true
 
+        /*
         user_by_route.users[userId].navigator_laguage_of_browser=navigator_laguage_of_browser; //navigator_language2 in initials_inputs
         user_by_route.users[userId].userlocale_of_browser=userlocale_of_browser; //userLocale2 in initials_inputs
         user_by_route.users[userId].decimalseparator_of_browser=decimalseparator_of_browser; //userLocale2 in initials_inputs
@@ -474,13 +475,20 @@ console.log('we will enter in try')
         user_by_route.users[userId].navigator_laguage_updated=navigator_laguage_updated;
         user_by_route.users[userId].userlocale_updated=userlocale_updated;
         user_by_route.users[userId].decimalseparator_updated=decimalseparator_updated; 
-
+        */
         
         await user_by_route.save();
 
         res.json({"organisme":user_by_route.organisme,
                   "region":user_by_route.region,
-                 "dataa":user_by_route.dataa})
+                  "dataa":user_by_route.dataa,
+                  
+                  "navigator_laguage_from_db":user_by_route.navigator_laguage_db,
+                  "userlocale_from_db":user_by_route.userlocale_db,
+                  "decimalseparator_from_db":user_by_route.decimalseparator_db,
+                  "use_english_from_db":user_by_route.use_english_date_by_user_himeself_in_modal_db
+                
+                })
         break
         }
       }
@@ -570,6 +578,7 @@ app.post('/tab/login', async (req, res) => {
   const navigator_laguage_of_browser = req.body.navigator_laguage_of_browser;
   const userlocale_of_browser = req.body.userlocale_of_browser;
   const decimalseparator_of_browser = req.body.decimalseparator_of_browser;
+  const use_english_date_by_user_himeself_of_browser = req.body.use_english_date_by_user_himeself_of_browser;
 
   //const { organisme, region,email,phoneNumber,tokenRecaptcha,navigator_laguage_of_browser } = req.body;
 
@@ -656,6 +665,7 @@ app.post('/tab/login', async (req, res) => {
           "navigator_laguage_db":navigator_laguage_of_browser,
           "userlocale_db":userlocale_of_browser,
           "decimalseparator_db":decimalseparator_of_browser,
+          "use_english_date_by_user_himeself_in_modal_db":use_english_date_by_user_himeself_of_browser,
 
           "users.user1.token":token,
           //"users.user1.owner":true,
@@ -665,13 +675,13 @@ app.post('/tab/login', async (req, res) => {
           "users.user1.email_to_display":email,
           "users.user1.used":true,
 
-          "users.user1.navigator_laguage_of_browser":navigator_laguage_of_browser,
-          "users.user1.userlocale_of_browser":userlocale_of_browser,
-          "users.user1.decimalseparator_of_browser":decimalseparator_of_browser,
+          //"users.user1.navigator_laguage_of_browser":navigator_laguage_of_browser,
+          //"users.user1.userlocale_of_browser":userlocale_of_browser,
+          //"users.user1.decimalseparator_of_browser":decimalseparator_of_browser,
 
-          "users.user1.navigator_laguage_updated":navigator_laguage_of_browser,
-          "users.user1.userlocale_updated":userlocale_of_browser,
-          "users.user1.decimalseparator_updated":decimalseparator_of_browser,
+          //"users.user1.navigator_laguage_updated":navigator_laguage_of_browser,
+          //"users.user1.userlocale_updated":userlocale_of_browser,
+          //"users.user1.decimalseparator_updated":decimalseparator_of_browser,
 
           
 
@@ -684,13 +694,13 @@ app.post('/tab/login', async (req, res) => {
           "users.user12.email_to_display":emailtodisplay,
           "users.user12.used":false,
 
-          "users.user12.navigator_laguage_of_browser":navigator_laguage_of_browser,
-          "users.user12.userlocale_of_browser":userlocale_of_browser,
-          "users.user12.decimalseparator_of_browser":decimalseparator_of_browser,
+          //"users.user12.navigator_laguage_of_browser":navigator_laguage_of_browser,
+          //"users.user12.userlocale_of_browser":userlocale_of_browser,
+          //"users.user12.decimalseparator_of_browser":decimalseparator_of_browser,
 
-          "users.user12.navigator_laguage_updated":navigator_laguage_of_browser,
-          "users.user12.userlocale_updated":userlocale_of_browser,
-          "users.user12.decimalseparator_updated":decimalseparator_of_browser,
+          //"users.user12.navigator_laguage_updated":navigator_laguage_of_browser,
+          //"users.user12.userlocale_updated":userlocale_of_browser,
+          //"users.user12.decimalseparator_updated":decimalseparator_of_browser,
 
 
 
@@ -890,8 +900,8 @@ app.post('/acc/accessfromurlcp',async (req, res) => {
 
     "navigator_laguage_of_owner":email_in_db.navigator_laguage_db,
     "userlocale_of_owner":email_in_db.userlocale_db,
-    "decimalseparator_of_owner":email_in_db.decimalseparator_db
-
+    "decimalseparator_of_owner":email_in_db.decimalseparator_db,
+    "use_english_date_by_user_himeself_in_modal_of_owner":email_in_db.use_english_date_by_user_himeself_in_modal_db
     //,'token_aftersuccesspass':findpassinFields.token
   });
   } else {
@@ -1381,12 +1391,14 @@ app.post('/users_roles_navbar',async (req,res)=>{
 app.post('/changeformat',async (req,res)=>{
   console.log('we are in changeformat')
   try {
-    const {currentrouteofurl,username} = req.body;
+    const {currentrouteofurl,username, navigator_laguage_of_browser, userlocale_of_browser , decimalseparator_of_browser,use_english_date_by_user_himeself_in_modal_of_browser} = req.body;
     const myCookie_token_in_changeformat = req.cookies['jwtTokentableur'];  
     const myCookie_token_hisownroute_in_changeformat = req.cookies['jwtTokentableurhisownroute']; 
 
     const decoded_in_changeformat = jwt.verify(myCookie_token_in_changeformat, secretKey);
-
+    console.log('decimalseparator_of_browser')
+    console.log(decimalseparator_of_browser)
+    
     if (username==undefined){
       return res.status(402).json({message:'new'})
     }
@@ -1404,11 +1416,27 @@ app.post('/changeformat',async (req,res)=>{
     if(!user_by_route_in_changeformat){
       return res.status(400).json({ message: 'Forbidden' });
     } else {
+      console.log('we will make changes in changeformat if it is true !!!!!!!!!!!!!!!!!!!!!!!!!')
+      if(user_by_route_in_changeformat.users.user1.idusername==username || user_by_route_in_changeformat.users.user12.idusername==username ){
+        console.log('22222 we will make changes in changeformat if it is true !!!!!!!!!!!!!!!!!!!!!!!!!')
+
+        user_by_route_in_changeformat.navigator_laguage_db=navigator_laguage_of_browser;
+        user_by_route_in_changeformat.userlocale_db=userlocale_of_browser;
+        user_by_route_in_changeformat.decimalseparator_db=decimalseparator_of_browser;
+        user_by_route_in_changeformat.use_english_date_by_user_himeself_in_modal_db=JSON.parse(use_english_date_by_user_himeself_in_modal_of_browser);
+        await user_by_route_in_changeformat.save();
+        res.status(200).json({ message: 'Data saved successfully' });
+
+      } else {
+        console.log('validation is not correct in changeformat ')
+        return res.status(400).json({ message: 'User cannot change format' });
+      }
 
     }
     
   } catch (error) {
-    
+    console.log('we are in error in changeformat ' + error)
+    return res.status(400).json({ message: 'Forbidden' });
   }
 
 })
@@ -1558,11 +1586,11 @@ if (socketsInTargetRoom) {
       io.to(namespace).emit('listingusers', usersList[namespace]);
     });
 
-    socket.on('change_numericformat',(data)=>{
+    socket.on('change_numericformat',([data1,data2])=>{
       socket.join(namespace)
       //io.to(namespace).emit('change_numericformat',data)
       //socket.broadcast.emit('inputUpdated', data);
-      socket.broadcast.to(namespace).emit('change_numericformat',data)
+      socket.broadcast.to(namespace).emit('change_numericformat',[data1,data2])
 
     })
   
