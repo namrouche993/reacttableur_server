@@ -579,7 +579,7 @@ app.post('/tab/login', async (req, res) => {
   const userlocale_of_browser = req.body.userlocale_of_browser;
   const decimalseparator_of_browser = req.body.decimalseparator_of_browser;
   const use_english_date_by_user_himeself_of_browser = req.body.use_english_date_by_user_himeself_of_browser;
-
+  const userTimeZone_of_browser = req.body.userTimeZone;
   //const { organisme, region,email,phoneNumber,tokenRecaptcha,navigator_laguage_of_browser } = req.body;
 
   console.log('tokenRecaptcha :')
@@ -666,6 +666,7 @@ app.post('/tab/login', async (req, res) => {
           "userlocale_db":userlocale_of_browser,
           "decimalseparator_db":decimalseparator_of_browser,
           "use_english_date_by_user_himeself_in_modal_db":use_english_date_by_user_himeself_of_browser,
+          "userTimeZone_db":userTimeZone_of_browser,
 
           "users.user1.token":token,
           //"users.user1.owner":true,
@@ -901,7 +902,8 @@ app.post('/acc/accessfromurlcp',async (req, res) => {
     "navigator_laguage_of_owner":email_in_db.navigator_laguage_db,
     "userlocale_of_owner":email_in_db.userlocale_db,
     "decimalseparator_of_owner":email_in_db.decimalseparator_db,
-    "use_english_date_by_user_himeself_in_modal_of_owner":email_in_db.use_english_date_by_user_himeself_in_modal_db
+    "use_english_date_by_user_himeself_in_modal_of_owner":email_in_db.use_english_date_by_user_himeself_in_modal_db,
+    "userTimeZone_of_owner":email_in_db.userTimeZone_db
     //,'token_aftersuccesspass':findpassinFields.token
   });
   } else {

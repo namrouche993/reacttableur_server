@@ -57,6 +57,7 @@ const MySchema = new Schema({
   userlocale_db:{required:true,type:'String'},
   decimalseparator_db:{required:true,type:'String'},
   use_english_date_by_user_himeself_in_modal_db:{required:true,type:Boolean},
+  userTimeZone_db:{required:true,type:String},
 
 
   users: {
