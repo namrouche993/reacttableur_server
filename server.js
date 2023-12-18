@@ -580,6 +580,10 @@ app.post('/tab/login', async (req, res) => {
   const decimalseparator_of_browser = req.body.decimalseparator_of_browser;
   const use_english_date_by_user_himeself_of_browser = req.body.use_english_date_by_user_himeself_of_browser;
   const userTimeZone_of_browser = req.body.userTimeZone;
+  console.log('use_english_date_by_user_himeself_of_browser --------------------:')
+  console.log(use_english_date_by_user_himeself_of_browser)
+
+
   //const { organisme, region,email,phoneNumber,tokenRecaptcha,navigator_laguage_of_browser } = req.body;
 
   console.log('tokenRecaptcha :')
@@ -728,7 +732,7 @@ app.post('/tab/login', async (req, res) => {
           
       
       } catch (error) {
-        console.log('catch error ')
+        console.log('catch error ' + error)
         res.status(400).json({ message: error.message });
       }
     
