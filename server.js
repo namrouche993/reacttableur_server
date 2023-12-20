@@ -400,6 +400,7 @@ app.post('/tab/ownenter', async (req, res) => {
   console.log('we are in tab/ownenter  ::: ')
   const {
     ownroute,
+    username
     
     /*
     navigator_laguage_of_browser,
@@ -414,6 +415,22 @@ app.post('/tab/ownenter', async (req, res) => {
   
   } = req.body;
   //console.log(ownroute)
+
+
+  const myCookie_token = req.cookies['jwtTokentableur'];  //// *// Replace 'myCookieName' with your actual cookie name//
+  console.log(myCookie_token);
+
+  const decoded_in_ownenter = jwt.verify(myCookie_token, secretKey);
+  console.log('decoded_in_ownenter')
+ // console.log(decoded_in_ownenter)
+
+
+  if (Object.values(decoded_in_ownenter)[0] !== username) {
+    console.log('we are inside decoded.decoded_in_ownenter !== username')
+    return res.status(401).send('Authentication failed !!!.');
+  }
+
+
   var user_by_route = await MyModelMongoose.findOne({"hisownroute":ownroute});
   //var userr = await MyModelMongoose.findOne({"phoneNumber_owner":"077775566"})
   //console.log(userr.dataa)
@@ -426,8 +443,6 @@ app.post('/tab/ownenter', async (req, res) => {
   console.log('********************************');
 
   
-  const myCookie_token = req.cookies['jwtTokentableur'];  //// */ Replace 'myCookieName' with your actual cookie name//
-  console.log(myCookie_token);
   //console.log(user_by_route);
 
 console.log('we will enter in try')
@@ -441,9 +456,6 @@ console.log('we will enter in try')
 
     if(myCookie_token){
       console.log('3cond')
-      const decoded_in_ownenter = jwt.verify(myCookie_token, secretKey);
-      console.log('decoded_in_ownenter')
-     // console.log(decoded_in_ownenter)
      var returniffalse = false;
 
      for(const userId in user_by_route.users){
@@ -482,11 +494,15 @@ console.log('we will enter in try')
         res.json({"organisme":user_by_route.organisme,
                   "region":user_by_route.region,
                   "dataa":user_by_route.dataa,
+                  "phoneNumber":user_by_route.phoneNumber_owner,
+
                   
                   "navigator_laguage_from_db":user_by_route.navigator_laguage_db,
                   "userlocale_from_db":user_by_route.userlocale_db,
                   "decimalseparator_from_db":user_by_route.decimalseparator_db,
-                  "use_english_from_db":user_by_route.use_english_date_by_user_himeself_in_modal_db
+                  "use_english_from_db":user_by_route.use_english_date_by_user_himeself_in_modal_db,
+
+                  "userTimeZone_db":user_by_route.userTimeZone_db
                 
                 })
         break
