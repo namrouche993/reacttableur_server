@@ -414,11 +414,13 @@ app.post('/tab/ownenter', async (req, res) => {
     
   
   } = req.body;
-  //console.log(ownroute)
-
-
+  //console.log(ownroute)!
+  try {
+ console.log('we are in tab/webenter : ')
   const myCookie_token = req.cookies['jwtTokentableur'];  //// *// Replace 'myCookieName' with your actual cookie name//
+  console.log('mycookies_token :')
   console.log(myCookie_token);
+  
 
   const decoded_in_ownenter = jwt.verify(myCookie_token, secretKey);
   console.log('decoded_in_ownenter')
@@ -446,7 +448,7 @@ app.post('/tab/ownenter', async (req, res) => {
   //console.log(user_by_route);
 
 console.log('we will enter in try')
-  try {
+  
       console.log('enter in try')
   if(!user_by_route){
     console.log('1cond')
@@ -496,13 +498,19 @@ console.log('we will enter in try')
                   "dataa":user_by_route.dataa,
                   "phoneNumber":user_by_route.phoneNumber_owner,
 
+                  "hisownroute_from_server":user_by_route.hisownroute,
+
                   
                   "navigator_laguage_from_db":user_by_route.navigator_laguage_db,
                   "userlocale_from_db":user_by_route.userlocale_db,
                   "decimalseparator_from_db":user_by_route.decimalseparator_db,
                   "use_english_from_db":user_by_route.use_english_date_by_user_himeself_in_modal_db,
 
-                  "userTimeZone_db":user_by_route.userTimeZone_db
+                  "userTimeZone_form_server":user_by_route.userTimeZone_db,
+
+                  "email_to_display_from_server":theuser.email_to_display,
+
+                  "role_user_from_server":theuser.role
                 
                 })
         break
