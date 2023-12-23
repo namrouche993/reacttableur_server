@@ -1623,6 +1623,11 @@ if (socketsInTargetRoom) {
       socket.broadcast.to(namespace).emit('change_numericformat',[data1,data2])
 
     })
+
+    socket.on('afterchange_data_socket_event',(receving_data_from_socket_clientside)=>{
+      socket.join(namespace);
+      socket.broadcast.to(namespace).emit('updateData_socket_event',receving_data_from_socket_clientside);
+    })
   
     socket.on('disconnect', () => {
       updatedUsersList.namespace = usersList[namespace].filter(user => user !== email_from_query_to_display);
