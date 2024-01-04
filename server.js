@@ -1629,7 +1629,7 @@ if (socketsInTargetRoom) {
       socket.broadcast.to(namespace).emit('updateData_socket_event',receving_data_from_socket_clientside);
     })
 
-    socket.on('undo_click_triggering' , (input)=>{
+    socket.on('undo_click_triggering' , (input)=> {
       socket.join(namespace);
       socket.broadcast.to(namespace).emit('getting_undo_click',input);
     })
