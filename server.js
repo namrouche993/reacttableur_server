@@ -57,6 +57,7 @@ const io = new Server(server,{
 })
 
 
+const mycache = {}; // Simple in-memory cache
 
 
 //var things = require('./things.js');
@@ -322,10 +323,23 @@ app.post('/register',authenticate, (req, res) => { // editable to remove
  app.post('/beacondata',express.json(), express.text(), async (req, res) => {
   // Handle the received data
   console.log('req.body :')
+  
 try {
   
   const receivedData = JSON.parse(req.body.jsonData_whenclosed); //JSON.parse(req.body) ;!!!!!!!::
   const receivedUsername = req.body.idusername00;
+  console.log('req.bodyy of beacondata')
+  //console.log(mycache)
+  //console.log(receivedData)
+
+  if (mycache[receivedData]) {
+    // If request is in progress or recently completed
+    //return res.json(mycache[receivedData]); // editable
+    console.log('- DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS DDDDDDDDDDDDD ------')
+    //console.log(mycache)
+    return res.status(400).send('Duplicated receivedData');
+  }
+  mycache[receivedData] = true; // Mark as in progress
 
   // const navigator_laguage_updated = req.body.navigator_laguage_updated;
   // const userlocale_updated = req.body.userlocale_updated;
@@ -379,10 +393,12 @@ try {
 } else {
   console.log('beacon or somethingelse or somethingelse failed')
   res.status(400).send('Data received failed.');
-
 }
 
+setTimeout(() => delete mycache[receivedData], 3000); // Adjust time as needed
+
 } catch (error) {
+ mycache = {}
  console.log('error beacondataaaaaaaaaaaaaaaaa  : ' + error) 
 }
 });
