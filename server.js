@@ -1629,6 +1629,32 @@ if (socketsInTargetRoom) {
       socket.broadcast.to(namespace).emit('updateData_socket_event',receving_data_from_socket_clientside);
     })
 
+    socket.on('afterchange_data_socket_event_edit',(receving_data_from_socket_clientside)=>{
+      socket.join(namespace);
+      socket.broadcast.to(namespace).emit('updateData_socket_event_edit',receving_data_from_socket_clientside);
+    })
+
+    socket.on('afterchange_data_socket_event_CopyPaste.paste',(receving_data_from_socket_clientside)=>{
+      socket.join(namespace);
+      socket.broadcast.to(namespace).emit('updateData_socket_event_CopyPaste.paste',receving_data_from_socket_clientside);
+    })
+
+    socket.on('afterchange_data_socket_event_Autofill.fill',(receving_data_from_socket_clientside)=>{
+      socket.join(namespace);
+      socket.broadcast.to(namespace).emit('updateData_socket_event_Autofill.fill',receving_data_from_socket_clientside);
+    })
+
+    socket.on('afterchange_data_socket_event_UndoRedo.undo',(receving_data_from_socket_clientside)=>{
+      socket.join(namespace);
+      socket.broadcast.to(namespace).emit('updateData_socket_event_UndoRedo.undo',receving_data_from_socket_clientside);
+    })
+
+    socket.on('afterchange_data_socket_event_UndoRedo.redo',(receving_data_from_socket_clientside)=>{
+      socket.join(namespace);
+      socket.broadcast.to(namespace).emit('updateData_socket_event_UndoRedo.redo',receving_data_from_socket_clientside);
+    })
+
+    /*
     socket.on('undo_click_triggering' , (input)=> {
       socket.join(namespace);
       socket.broadcast.to(namespace).emit('getting_undo_click',input);
@@ -1638,7 +1664,8 @@ if (socketsInTargetRoom) {
       socket.join(namespace);
       socket.broadcast.to(namespace).emit('getting_redo_click',input);
     })
-  
+  */
+ 
     socket.on('disconnect', () => {
       updatedUsersList.namespace = usersList[namespace].filter(user => user !== email_from_query_to_display);
       io.to(namespace).emit('listingusers',updatedUsersList[namespace]);
